@@ -13,6 +13,7 @@ import { Win98Frame, Win98TitleBar, Win98InnerFrame, Win98ContentArea, Win98Foot
 import { Token } from '@/types/token'
 import { fetchTokens, recycleTokens } from '@/services/token'
 import Toast from '../shared/Toast'
+import { useTokens } from '@/hooks/useTokens'
 
 export default function MainWindow() {
   const { connected, publicKey } = useWallet()
@@ -21,37 +22,12 @@ export default function MainWindow() {
   const [isHowItWorksOpen, setIsHowItWorksOpen] = useState(false)
   const [isPressed, setIsPressed] = useState(false)
   const [isHovered, setIsHovered] = useState(false)
-  const [isLoading, setIsLoading] = useState(false)
-  const [tokens, setTokens] = useState<Token[]>([])
   const [selectedTokens, setSelectedTokens] = useState<string[]>([])
   const [toast, setToast] = useState<{
     message: string;
     type: 'success' | 'error';
   } | null>(null)
-
-  useEffect(() => {
-    if (connected && publicKey) {
-      loadTokens()
-    } else {
-      setTokens([])
-      setSelectedTokens([])
-    }
-  }, [connected, publicKey])
-
-  const loadTokens = async () => {
-    if (!publicKey) return
-    
-    setIsLoading(true)
-    try {
-      const tokenData = await fetchTokens(publicKey.toString())
-      setTokens(tokenData)
-    } catch (error) {
-      console.error('Failed to load tokens:', error)
-      setTokens([])
-    } finally {
-      setIsLoading(false)
-    }
-  }
+  const { tokens, isLoading, mutate } = useTokens(publicKey?.toString())
 
   const handleTokenSelect = (tokenId: string) => {
     setSelectedTokens(prev => 
@@ -68,7 +44,7 @@ export default function MainWindow() {
   }
 
   const getButtonOpacity = () => {
-    if (connected && (tokens.length === 0 || selectedTokens.length === 0)) {
+    if (connected && (tokens?.length === 0 || selectedTokens.length === 0)) {
       return 'opacity-50'
     }
     return ''
@@ -83,16 +59,15 @@ export default function MainWindow() {
     if (!connected || selectedTokens.length === 0) return
 
     try {
-      // TODO: 성공 여부 확인 후 list 변경
       await recycleTokens(selectedTokens)
+      setSelectedTokens([])
       setToast({
         message: "Recycle completed",
         type: 'success'
       })
-      // 토큰 목록 새로고침
-      loadTokens()
-      // 선택 초기화
-      setSelectedTokens([])
+      
+      // 토큰 목록 수동 갱신
+      mutate()
     } catch (error) {
       setToast({
         message: "Recycle failed",
@@ -124,7 +99,7 @@ export default function MainWindow() {
     }
 
     if (isLoading) return <LoadingView />
-    if (tokens.length === 0) return <EmptyView />
+    if (!tokens || tokens.length === 0) return <EmptyView />
     return (
       <TokenList
         tokens={tokens}
@@ -136,8 +111,8 @@ export default function MainWindow() {
 
   return (
     <>
-      <Win98Frame className="h-full flex flex-col">
-        <Win98TitleBar className="h-[36px] bg-[#503D9E] text-white shrink-0">
+      <Win98Frame className="h-[600px] flex flex-col">
+        <Win98TitleBar className="h-[36px] bg-[#503D9E] text-white flex-shrink-0">
           <div className="flex justify-between items-center w-full">
             <div className="text-base leading-8 font-[700] pl-5">
               Volume - {points} SOL
@@ -173,13 +148,13 @@ export default function MainWindow() {
           </div>
         </Win98TitleBar>
 
-        <Win98InnerFrame className="flex-1 min-h-0">
-          <Win98ContentArea className="mx-[2px] my-[6px] h-[calc(100%-12px)] bg-white border-[#0A0A0A] border-[2px] flex flex-col">
+        <Win98InnerFrame className="flex-1 min-h-0 flex flex-col">
+          <Win98ContentArea className="flex-1 min-h-0 mb-4">
             {renderContent()}
           </Win98ContentArea>
         </Win98InnerFrame>
 
-        <Win98Footer>
+        <Win98Footer className="flex-shrink-0">
           <div className="h-[2px] border-t border-t-[#CCC0F8] border-b border-b-[#776EBA]" />
           <Win98FooterContent>
             {connected && (
@@ -208,7 +183,7 @@ export default function MainWindow() {
               }}
               onMouseEnter={() => setIsHovered(true)}
               className="relative w-[208px] h-[38px] flex items-center justify-center"
-              disabled={connected && (tokens.length === 0 || selectedTokens.length === 0)}
+              disabled={connected && (tokens?.length === 0 || selectedTokens.length === 0)}
             >
               <Image
                 src={getButtonImage()}

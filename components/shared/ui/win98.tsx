@@ -87,14 +87,7 @@ const Win98ContentArea = React.forwardRef<
   <div
     ref={ref}
     className={cn(
-      "relative flex flex-col flex-grow",
-      "m-2",
-      // 메인 보더
-      "border-2 border-[#776EBA]",
-      // 내부 흰색 영역
-      "before:absolute before:content-[''] before:inset-[2px]",
-      "before:bg-white before:border-2 before:border-black",
-      "before:-z-10",
+      "mx-[2px] bg-white border-[#0A0A0A] border-[2px] flex flex-col overflow-hidden",
       className
     )}
     {...props}
@@ -120,7 +113,7 @@ const Win98TableHeaderCell = React.forwardRef<
 ))
 Win98TableHeaderCell.displayName = "Win98TableHeaderCell"
 
-// 테이블 헤��� 컨테이너
+// 테이블 헤 컨테이너
 const Win98TableHeader = React.forwardRef<
   HTMLDivElement,
   React.HTMLAttributes<HTMLDivElement>

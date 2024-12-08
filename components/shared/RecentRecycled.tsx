@@ -16,7 +16,6 @@ export default function RecentRecycled() {
         if (data.amount !== recent.amount) {
           setPrevAmount(recent.amount)
           setRecent(data)
-          // TODO: 값이 변경되었을 때 이펙트 추가
         }
       } catch (error) {
         console.error('Failed to fetch recent recycled:', error)
@@ -30,7 +29,7 @@ export default function RecentRecycled() {
     const interval = setInterval(fetchData, 5000)
 
     return () => clearInterval(interval)
-  }, [recent.amount])
+  }, [])
 
   return (
     <div className="h-[60px] bg-[#26243B] border-b border-[#1A1828] flex items-center justify-center">

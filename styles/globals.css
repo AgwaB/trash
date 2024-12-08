@@ -1,0 +1,25 @@
+@layer utilities {
+  .scrollbar-win98 {
+    scrollbar-width: auto;
+    scrollbar-color: #DFDFDF #FFFFFF;
+  }
+
+  .scrollbar-win98::-webkit-scrollbar {
+    width: 16px;
+  }
+
+  .scrollbar-win98::-webkit-scrollbar-track {
+    background: #FFFFFF;
+    border-left: 1px solid #DFDFDF;
+  }
+
+  .scrollbar-win98::-webkit-scrollbar-thumb {
+    background: #DFDFDF;
+    border: 1px solid #848584;
+    border-right-width: 2px;
+  }
+
+  .scrollbar-win98::-webkit-scrollbar-thumb:hover {
+    background: #CDCDCD;
+  }
+} 

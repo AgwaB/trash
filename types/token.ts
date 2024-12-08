@@ -1,23 +1,28 @@
-export enum TokenDescription {
-  RUG = "Rug",
-  TRASH = "Trash",
-  POOP = "Poop",
-  GARBAGE = "Garbage",
-  UTILITY_TRASH = "Utility Trash",
-  SHINY_TRASH = "Shiny Trash"
+export enum TokenType {
+  MEME = 'MEME',
+  UTILITY = 'UTILITY',
+  UNKNOWN = 'UNKNOWN'
 }
 
 export interface Token {
-  id: string;
-  name: string;
-  description: TokenDescription;
-  image: string;
+  id: string
+  mint: string
+  name: string
+  symbol: string
+  uri: string
+  description: string
+  amount: number
+  type: TokenType
 }
 
-export interface TokenData {
-  name: string;
-  description: TokenDescription;
-  image: string;
+// Token Whitelist Description
+export enum TokenDescription {
+    RUG = "Rug",
+    TRASH = "Trash",
+    POOP = "Poop",
+    GARBAGE = "Garbage",
+    UTILITY_TRASH = "Utility Trash",
+    SHINY_TRASH = "Shiny Trash"
 }
 
 export interface TokenListState {
@@ -25,3 +30,4 @@ export interface TokenListState {
   tokens: Token[];
   error?: string;
 }
+  

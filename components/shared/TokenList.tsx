@@ -12,9 +12,11 @@ interface TokenListProps {
 
 export default function TokenList({ tokens, selectedTokens, onSelectToken, isMobile = false }: TokenListProps) {
   return (
-    <div className="w-full h-full bg-white">
-      <TableHeader isMobile={isMobile} />
-      <div className="w-full h-[calc(100%-30px)] overflow-y-auto">
+    <div className="w-full h-full flex flex-col">
+      <div className="flex-shrink-0">
+        <TableHeader isMobile={isMobile} />
+      </div>
+      <div className="flex-1 overflow-y-auto min-h-0 scrollbar-win98">
         {tokens.map((token, index) => (
           <TokenItem
             key={token.id}
