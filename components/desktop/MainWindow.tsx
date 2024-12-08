@@ -9,7 +9,6 @@ import TokenList from '../shared/TokenList'
 import EmptyView from '../shared/EmptyView'
 import { usePoints } from '@/contexts/PointsContext'
 import { Win98Frame, Win98TitleBar, Win98InnerFrame, Win98ContentArea, Win98Footer, Win98FooterContent } from '../shared/ui/win98'
-import { recycleTokens } from '@/services/token'
 import Toast from '../shared/Toast'
 import { useTokens } from '@/hooks/useTokens'
 
@@ -57,7 +56,7 @@ export default function MainWindow() {
     if (!connected || selectedTokens.length === 0) return
 
     try {
-      await recycleTokens(selectedTokens)
+      // TODO: recycleTokens 구현
       setSelectedTokens([])
       setToast({
         message: "Recycle completed",
@@ -65,7 +64,7 @@ export default function MainWindow() {
       })
       
       // 토큰 목록 수동 갱신
-      mutate()
+      await mutate()
     } catch {
       setToast({
         message: "Recycle failed",
@@ -109,7 +108,15 @@ export default function MainWindow() {
 
   return (
     <>
-      <Win98Frame className="h-[600px] flex flex-col">
+      <Win98Frame className="
+        w-[450px] h-[600px]                    /* 기본 크기 */
+        md:w-[calc(100vw-200px)]              /* 중간 화면에서는 화면 너비에서 여백 제외 */
+        md:max-w-[450px]                      /* 최대 너비는 450px로 제한 */
+        md:h-[calc(100vh-120px)]              /* 화면 높이에서 navbar, footer 높이 제외 */
+        md:max-h-[600px]                      /* 최대 높이는 600px로 제한 */
+        md:min-h-[400px]                      /* 최소 높이 설정 */
+        flex flex-col
+      ">
         <Win98TitleBar className="h-[36px] bg-[#503D9E] text-white flex-shrink-0">
           <div className="flex justify-between items-center w-full">
             <div className="text-base leading-8 font-[700] pl-5">
@@ -147,7 +154,7 @@ export default function MainWindow() {
         </Win98TitleBar>
 
         <Win98InnerFrame className="flex-1 min-h-0 flex flex-col">
-          <Win98ContentArea className="flex-1 min-h-0 mb-4">
+          <Win98ContentArea className="flex-1 min-h-0">
             {renderContent()}
           </Win98ContentArea>
         </Win98InnerFrame>

@@ -13,13 +13,21 @@ export default function DesktopLayout() {
         <RecentRecycled />
       </div>
       
-      <div className="flex-1 relative overflow-hidden flex flex-col">
+      <div className="flex-1 relative overflow-hidden">
         <div className="absolute left-0 top-0 bottom-0 w-[100px]">
           <SideIcons />
         </div>
         
-        <div className="flex-1 flex items-center justify-center pb-4">
-          <div className="h-[calc(100%-2rem)] w-[450px]">
+        <div className="
+          h-full
+          flex items-center justify-center
+          px-4
+        ">
+          <div className="
+            w-[450px]
+            sm:w-[calc(100%-32px)]
+            sm:max-w-[450px]
+          ">
             <MainWindow />
           </div>
         </div>

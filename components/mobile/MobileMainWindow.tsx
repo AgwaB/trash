@@ -9,9 +9,8 @@ import TokenList from '../shared/TokenList'
 import EmptyView from '../shared/EmptyView'
 import { usePoints } from '@/contexts/PointsContext'
 import { Win98Frame, Win98TitleBar, Win98InnerFrame, Win98ContentArea, Win98Footer, Win98FooterContent } from '../shared/ui/win98'
-import { Token } from '@/types/token'
-import { fetchTokens, recycleTokens } from '@/services/token'
 import Toast from '../shared/Toast'
+import { useTokens } from '@/hooks/useTokens'
 
 export default function MobileMainWindow() {
   const { connected, publicKey } = useWallet()
@@ -20,39 +19,13 @@ export default function MobileMainWindow() {
   const [isHowItWorksOpen, setIsHowItWorksOpen] = useState(false)
   const [isPressed, setIsPressed] = useState(false)
   const [isHovered, setIsHovered] = useState(false)
-  const [isLoading, setIsLoading] = useState(false)
-  const [tokens, setTokens] = useState<Token[]>([])
+  const [isRecycling, setIsRecycling] = useState(false)
   const [selectedTokens, setSelectedTokens] = useState<string[]>([])
   const [toast, setToast] = useState<{
     message: string;
     type: 'success' | 'error';
   } | null>(null)
-
-  const loadTokens = async () => {
-    if (!publicKey) return
-    
-    setIsLoading(true)
-    try {
-      const tokenData = await fetchTokens(publicKey.toString())
-      setTokens(tokenData)
-    } catch {
-      setToast({
-        message: "Recycle failed",
-        type: 'error'
-      })
-    } finally {
-      setIsLoading(false)
-    }
-  }
-
-  useEffect(() => {
-    if (connected && publicKey) {
-      loadTokens()
-    } else {
-      setTokens([])
-      setSelectedTokens([])
-    }
-  }, [connected, publicKey, loadTokens])
+  const { tokens, isLoading, mutate } = useTokens(publicKey?.toString())
 
   const handleTokenSelect = (tokenId: string) => {
     setSelectedTokens(prev => 
@@ -75,7 +48,7 @@ export default function MobileMainWindow() {
   }
 
   const getButtonOpacity = () => {
-    if (connected && (tokens.length === 0 || selectedTokens.length === 0)) {
+    if (connected && (!tokens || tokens.length === 0 || selectedTokens.length === 0)) {
       return 'opacity-50'
     }
     return ''
@@ -90,8 +63,8 @@ export default function MobileMainWindow() {
     if (!connected || selectedTokens.length === 0) return
 
     try {
-      setIsLoading(true)
-      await recycleTokens(selectedTokens)
+      setIsRecycling(true)
+      // todo: recycleTokens 구현
       setSelectedTokens([])
       
       setToast({
@@ -99,16 +72,14 @@ export default function MobileMainWindow() {
         type: 'success'
       })
 
-      const tokenData = await fetchTokens(publicKey!.toString())
-      setTokens(tokenData)
-      
+      await mutate()
     } catch {
       setToast({
         message: "Recycle failed",
         type: 'error'
       })
     } finally {
-      setIsLoading(false)
+      setIsRecycling(false)
     }
   }
 
@@ -135,7 +106,7 @@ export default function MobileMainWindow() {
     }
 
     if (isLoading) return <LoadingView />
-    if (tokens.length === 0) return <EmptyView />
+    if (!tokens || tokens.length === 0) return <EmptyView />
     return (
       <TokenList
         tokens={tokens}
@@ -220,7 +191,7 @@ export default function MobileMainWindow() {
               }}
               onMouseEnter={() => setIsHovered(true)}
               className="relative w-[208px] h-[38px] flex items-center justify-center"
-              disabled={connected && (tokens.length === 0 || selectedTokens.length === 0)}
+              disabled={connected && (!tokens || tokens.length === 0 || selectedTokens.length === 0)}
             >
               <Image
                 src={getButtonImage()}

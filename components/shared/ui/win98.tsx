@@ -10,14 +10,15 @@ const Win98Frame = React.forwardRef<
     ref={ref}
     className={cn(
       "flex flex-col max-w-[650px]",
-      "bg-[#AA9ECA] p-1.5",
+      "bg-[#AA9ECA] p-1",
       // 외부 테두리 효과
       "relative",
-      "border-2 border-[#504DD7]",
+      "border-2 border-[#776EBA]",
       // 내부 그림자와 하이라이트
       "before:absolute before:content-[''] before:inset-0",
       "before:border before:border-t-white before:border-l-white",
-      "before:border-r-[#776EBA] before:border-b-[#776EBA]",
+      "before:border-r-[#504DD7] before:border-b-[#504DD7]",
+      "before:border-2",
       "before:pointer-events-none",
       // 외부 그림자
       "shadow-[4px_4px_10px_rgba(0,0,0,0.35)]",
@@ -62,16 +63,21 @@ const Win98InnerFrame = React.forwardRef<
   <div
     ref={ref}
     className={cn(
-      "flex flex-col flex-grow",
-      "bg-[#AA9ECA] p-1.5 mt-0",
-      // 외부 테두리
-      "border-2 border-[#504DD7]",
-      // 내부 테두리 효과
-      "relative",
-      "before:absolute before:content-[''] before:inset-0",
-      "before:border before:border-t-white/40 before:border-l-white/40",
-      "before:border-r-[#776EBA] before:border-b-[#776EBA]",
-      "before:pointer-events-none",
+        "flex flex-col flex-grow",
+        "bg-[#AA9ECA] p-1.5 mt-0",
+        // 가장 바깥 테두리
+        "border-[2px] border-[#504DD7]",
+        // 두 번째 테두리
+        "relative",
+        "before:absolute before:content-[''] before:inset-[2px]",
+        "before:border-[2px]",
+        "before:border before:border-t-[#D8D0F0] before:border-l-[#D8D0F0]",
+        "before:border-r-[#776EBA] before:border-b-[#776EBA]",
+        "before:pointer-events-none",
+        // 세 번째 테두리
+        "after:absolute after:content-[''] after:inset-[4px]",
+        "after:border-[2px] after:border-[#D8D0F0]",
+        "after:pointer-events-none",
       className
     )}
     {...props}
@@ -177,10 +183,11 @@ const Win98Footer = React.forwardRef<
     ref={ref}
     className={cn(
       "relative bg-[#AA9ECA] h-[100px] flex flex-col shrink-0",
-      "border-2 border-[#504DD7]",
+    //   "border-2 border-[#504DD7]",
       "before:absolute before:content-[''] before:inset-0",
-      "before:border before:border-t-white/40 before:border-l-white/40",
-      "before:border-r-[#776EBA] before:border-b-[#776EBA]",
+      "before:border" ,
+      "before:border-r-white/40 before:border-b-white/40",
+      "before:border-t-[#776EBA] before:border-l-[#776EBA]",
       "before:pointer-events-none",
       className
     )}
@@ -197,11 +204,11 @@ const Win98FooterContent = React.forwardRef<
     ref={ref}
     className={cn(
       "flex-1 flex flex-col items-center justify-center",
-      "border-2 border-[#776EBA] mx-[1px] my-[1px]",
+    //   "border-2 border-[#776EBA] mx-[1px] my-[1px]",
       "relative",
       "before:absolute before:content-[''] before:inset-0",
-      "before:border before:border-t-[#CCC0F8] before:border-l-[#CCC0F8]",
-      "before:border-r-[#776EBA] before:border-b-[#776EBA]",
+    //   "before:border-r-white/40 before:border-b-white/40",
+    //   "before:border-t-[#776EBA] before:border-l-[#776EBA]",
       "before:pointer-events-none",
       className
     )}

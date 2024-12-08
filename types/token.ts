@@ -11,6 +11,7 @@ export interface Token {
   symbol: string
   uri: string
   description: string
+  imageUri?: string
   amount: number
   type: TokenType
 }

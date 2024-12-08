@@ -9,10 +9,6 @@ const nextConfig: NextConfig = {
       },
       {
         protocol: 'https',
-        hostname: 'bafkreib5y5hapzlhjitu6ytz2f6c5c2tyoqxpqqbuh2ziheqmd25quad5u.ipfs.nftstorage.link',
-      },
-      {
-        protocol: 'https',
         hostname: '**.ipfs.nftstorage.link',
       },
       {
@@ -22,6 +18,18 @@ const nextConfig: NextConfig = {
       {
         protocol: 'https',
         hostname: 'static.getgrass.io',
+      },
+      {
+        protocol: 'https',
+        hostname: 'metadata.degods.com',
+      },
+      {
+        protocol: 'https',
+        hostname: '**.cloudfront.net',
+      },
+      {
+        protocol: 'https',
+        hostname: 'shdw-drive.genesysgo.net',
       }
     ],
     unoptimized: true
