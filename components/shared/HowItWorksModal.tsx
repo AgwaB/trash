@@ -72,7 +72,7 @@ export default function HowItWorksModal({ isOpen, onClose, isMobile = false }: H
                 className="relative w-[208px] h-[38px] flex items-center justify-center"
               >
                 <Image
-                  src="/images/mobile-button.png"
+                  src="/images/mobile-recycle.png"
                   alt="Close Button"
                   width={208}
                   height={38}

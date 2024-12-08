@@ -41,9 +41,9 @@ export default function MobileMainWindow() {
       if (isHovered) return '/images/recycle.png'
       return '/images/recycle.png'
     } else {
-      if (isPressed) return '/images/mobile-button.png'
-      if (isHovered) return '/images/mobile-button.png'
-      return '/images/mobile-button.png'
+      if (isPressed) return '/images/mobile-recycle.png'
+      if (isHovered) return '/images/mobile-recycle.png'
+      return '/images/mobile-recycle.png'
     }
   }
 
@@ -119,7 +119,7 @@ export default function MobileMainWindow() {
 
   return (
     <>
-      <Win98Frame className="h-full w-full">
+      <Win98Frame className="h-full w-full flex flex-col">
         <Win98TitleBar className="h-[36px] bg-[#503D9E] text-white shrink-0">
           <div className="flex justify-between items-center w-full">
             <div className="text-base leading-8 font-[700] pl-5">
@@ -156,13 +156,24 @@ export default function MobileMainWindow() {
           </div>
         </Win98TitleBar>
 
-        <Win98InnerFrame className="flex-1 min-h-0">
-          <Win98ContentArea className="mx-[2px] my-[6px] h-[calc(100%-12px)] bg-white border-[#0A0A0A] border-[2px] flex flex-col">
+        <Win98InnerFrame className="flex-1 min-h-0 flex flex-col">
+          <Win98ContentArea className="
+            mx-[2px] 
+            my-[6px] 
+            flex-1          /* h-[400px] 대신 flex-1 사용 */
+            min-h-0         /* flex-1이 작동하도록 min-h-0 추가 */
+            bg-white 
+            border-[#0A0A0A] 
+            border-[2px] 
+            flex 
+            flex-col
+            overflow-auto
+          ">
             {renderContent()}
           </Win98ContentArea>
         </Win98InnerFrame>
 
-        <Win98Footer>
+        <Win98Footer className="shrink-0">
           <div className="h-[2px] border-t border-t-[#CCC0F8] border-b border-b-[#776EBA]" />
           <Win98FooterContent>
             {connected && (
