@@ -113,7 +113,7 @@ export default function MainWindow() {
         <Win98TitleBar className="h-[36px] bg-[#503D9E] text-white flex-shrink-0">
           <div className="flex justify-between items-center w-full">
             <div className="text-base leading-8 font-[700] pl-5">
-              Volume - {points} SOL
+              Volumee - {points} SOL
             </div>
             <div className="flex items-center">
               <div 
