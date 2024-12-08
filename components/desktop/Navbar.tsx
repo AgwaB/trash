@@ -7,7 +7,7 @@ import { usePoints } from '@/contexts/PointsContext'
 import WalletButton from './WalletButton'
 
 export default function Navbar() {
-  const { disconnect } = useWallet()
+  const { } = useWallet()
   const [isWalletModalOpen, setIsWalletModalOpen] = useState(false)
   const { points } = usePoints()
 
@@ -59,7 +59,8 @@ export default function Navbar() {
               </button>
             </div>
             <div className="hidden md:block">
-              <WalletButton onOpenModal={() => setIsWalletModalOpen(true)} />
+                {/* // TODO */}
+              <WalletButton onClick={() => setIsWalletModalOpen(true)} />
             </div>
           </div>
         </div>

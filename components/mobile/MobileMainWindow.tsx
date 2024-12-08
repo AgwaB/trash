@@ -28,15 +28,6 @@ export default function MobileMainWindow() {
     type: 'success' | 'error';
   } | null>(null)
 
-  useEffect(() => {
-    if (connected && publicKey) {
-      loadTokens()
-    } else {
-      setTokens([])
-      setSelectedTokens([])
-    }
-  }, [connected, publicKey])
-
   const loadTokens = async () => {
     if (!publicKey) return
     
@@ -44,13 +35,24 @@ export default function MobileMainWindow() {
     try {
       const tokenData = await fetchTokens(publicKey.toString())
       setTokens(tokenData)
-    } catch (error) {
-      console.error('Failed to load tokens:', error)
-      setTokens([])
+    } catch {
+      setToast({
+        message: "Recycle failed",
+        type: 'error'
+      })
     } finally {
       setIsLoading(false)
     }
   }
+
+  useEffect(() => {
+    if (connected && publicKey) {
+      loadTokens()
+    } else {
+      setTokens([])
+      setSelectedTokens([])
+    }
+  }, [connected, publicKey, loadTokens])
 
   const handleTokenSelect = (tokenId: string) => {
     setSelectedTokens(prev => 
@@ -100,7 +102,7 @@ export default function MobileMainWindow() {
       const tokenData = await fetchTokens(publicKey!.toString())
       setTokens(tokenData)
       
-    } catch (error) {
+    } catch {
       setToast({
         message: "Recycle failed",
         type: 'error'

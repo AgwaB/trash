@@ -1,9 +1,8 @@
 import useSWR from 'swr'
 import { fetchTokens } from '@/services/token'
-import { Token } from '@/types/token'
 
 export function useTokens(address: string | undefined) {
-  const { data, error, isLoading, mutate } = useSWR<Token[]>(
+  const { data, error, isLoading, mutate } = useSWR(
     address ? `tokens/${address}` : null,
     () => address ? fetchTokens(address) : null,
     {

@@ -4,11 +4,10 @@ import Image from 'next/image'
 import { useWallet } from '@solana/wallet-adapter-react'
 
 interface WalletButtonProps {
-  onOpenModal: () => void;
-  className?: string;
+  onClick: () => void
 }
 
-export default function WalletButton({ onOpenModal, className }: WalletButtonProps) {
+export default function WalletButton({ onClick }: WalletButtonProps) {
   const { connected, publicKey, disconnect } = useWallet()
   const [isDropdownOpen, setIsDropdownOpen] = useState(false)
   const [isPressed, setIsPressed] = useState(false)
@@ -44,7 +43,7 @@ export default function WalletButton({ onOpenModal, className }: WalletButtonPro
           if (connected) {
             setIsDropdownOpen(!isDropdownOpen)
           } else {
-            onOpenModal()
+            onClick()
           }
         }}
         onMouseDown={() => setIsPressed(true)}

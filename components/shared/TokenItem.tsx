@@ -1,6 +1,5 @@
 import React from 'react'
 import Image from 'next/image'
-import { Button } from './ui/button'
 import { Token, TokenDescription } from '@/types/token'
 import { useTokenMetadata } from '@/hooks/useTokenMetadata'
 

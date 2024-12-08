@@ -63,10 +63,12 @@ export default function WalletModal({ isOpen, onClose, isMobile = false }: Walle
                 >
                   <div className="w-[50px] h-[50px] bg-[#EEEEEE] rounded-[10px] flex items-center justify-center p-2">
                     {wallet.adapter.icon && (
-                      <img
+                      <Image
                         src={wallet.adapter.icon}
                         alt={wallet.adapter.name}
-                        className="w-[34px] h-[34px] object-contain"
+                        width={20}
+                        height={20}
+                        className="w-5 h-5"
                       />
                     )}
                   </div>

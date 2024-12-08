@@ -7,7 +7,7 @@ export default function TotalRecycled() {
     amount: 0,
     symbol: "$WIF"
   })
-  const [prevAmount, setPrevAmount] = useState(0)
+  const [, setPrevAmount] = useState(0)
 
   useEffect(() => {
     const fetchData = async () => {

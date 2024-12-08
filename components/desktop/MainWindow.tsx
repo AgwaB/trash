@@ -1,8 +1,7 @@
 "use client"
-import React, { useState, useEffect } from 'react'
+import React, { useState } from 'react'
 import Image from 'next/image'
 import { useWallet } from '@solana/wallet-adapter-react'
-import { Button } from '../shared/ui/button'
 import WalletModal from '../shared/WalletModal'
 import HowItWorksModal from '../shared/HowItWorksModal'
 import LoadingView from '../shared/LoadingView'
@@ -10,8 +9,7 @@ import TokenList from '../shared/TokenList'
 import EmptyView from '../shared/EmptyView'
 import { usePoints } from '@/contexts/PointsContext'
 import { Win98Frame, Win98TitleBar, Win98InnerFrame, Win98ContentArea, Win98Footer, Win98FooterContent } from '../shared/ui/win98'
-import { Token } from '@/types/token'
-import { fetchTokens, recycleTokens } from '@/services/token'
+import { recycleTokens } from '@/services/token'
 import Toast from '../shared/Toast'
 import { useTokens } from '@/hooks/useTokens'
 
@@ -68,7 +66,7 @@ export default function MainWindow() {
       
       // 토큰 목록 수동 갱신
       mutate()
-    } catch (error) {
+    } catch {
       setToast({
         message: "Recycle failed",
         type: 'error'
