@@ -49,7 +49,7 @@ async function getTokenImageUri(token: Token): Promise<string | undefined> {
         const metadata: TokenMetadata = await response.json()
         return metadata.image
       } catch (error) {
-        console.error('Error fetching token metadata:', error)
+        console.error(`Error fetching token ${token.id} metadata: ${error}`)
         return undefined
       }
     },
@@ -90,10 +90,10 @@ async function getSftTokens(ownerAddress: string) {
     
     const processedTokens = await Promise.all(
       metadataList
-        .filter((item): item is Nft | Sft => item !== null)
+        .filter((item): item is any => item !== null)
         .map(async item => {
           const token: Token = {
-            id: item.address.toString(),
+            id: item.mintAddress.toString(),
             mint: item.address.toString(),
             name: item.name,
             symbol: item.symbol,
@@ -134,7 +134,7 @@ async function getToken2022s(ownerAddress: string) {
         const metadata = await getTokenMetadata(connection, new PublicKey(mintAddress))
         
         const token: Token = {
-          id: account.pubkey.toString(),
+          id: new PublicKey(mintAddress).toString(),
           mint: mintAddress,
           name: metadata?.name || 'Unknown',
           symbol: metadata?.symbol || 'UNKNOWN',

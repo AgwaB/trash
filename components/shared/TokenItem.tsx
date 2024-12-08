@@ -1,6 +1,7 @@
 import React from 'react'
 import Image from 'next/image'
 import { Token, TokenDescription } from '@/types/token'
+import { getTokenFallbackImage as getPredefinedTokenImage } from '@/constants/tokenImages'
 
 interface TokenItemProps {
   token: Token
@@ -17,6 +18,21 @@ export default function TokenItem({ token, index, onSelect, isSelected }: TokenI
     onSelect(token.id)
   }
   
+  // 이미지 소스 결정 로직
+  const getImageSource = () => {
+    const predefinedImage = getPredefinedTokenImage(token.id)
+    if (predefinedImage) {
+        console.log(`predefined token ${token.id}`);
+      return predefinedImage
+    }
+
+    if (token.imageUri) {
+      return token.imageUri
+    }
+    
+    return "/images/default-token.png"
+  }
+  
   return (
     <div className={`flex w-full h-[80px] border-b border-[#DFDFDF] ${isSelected ? 'bg-[#333096]' : 'bg-white hover:bg-[#333096]'} group cursor-pointer`}>
       {/* Index */}
@@ -31,7 +47,7 @@ export default function TokenItem({ token, index, onSelect, isSelected }: TokenI
         <div className="flex items-center gap-4">
           <div className="w-10 h-10 relative">
             <Image
-              src={token.imageUri || "/images/default-token.png"}
+              src={getImageSource()}
               alt={token.name || 'Token Image'}
               fill
               className="object-contain"
