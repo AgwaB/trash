@@ -1,3 +1,5 @@
+import { Decimal } from 'decimal.js'
+
 export enum TokenType {
   MEME = 'MEME',
   UTILITY = 'UTILITY',
@@ -12,8 +14,9 @@ export interface Token {
   uri: string
   description: string
   imageUri?: string
-  amount: number
+  amount: string
   type: TokenType
+  solValue?: string
 }
 
 // Token Whitelist Description

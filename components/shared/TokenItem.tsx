@@ -22,7 +22,6 @@ export default function TokenItem({ token, index, onSelect, isSelected }: TokenI
   const getImageSource = () => {
     const predefinedImage = getPredefinedTokenImage(token.id)
     if (predefinedImage) {
-        console.log(`predefined token ${token.id}`);
       return predefinedImage
     }
 

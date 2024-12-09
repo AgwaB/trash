@@ -4,10 +4,13 @@ import { Metaplex, Nft, Sft } from "@metaplex-foundation/js"
 import { getTokenMetadata } from "@solana/spl-token"
 import { Token, TokenType } from "@/types/token"
 import { unstable_cache } from 'next/cache'
+import { getCachedPrices, updateCachedPrice, getExpiredTokenIds, getAllCachedPrices } from './cache'
+import { Decimal } from 'decimal.js'
 
 const TOKEN_PROGRAM_ID = new PublicKey("TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA")
 const TOKEN_2022_PROGRAM_ID = new PublicKey("TokenzQdBNbLqP5VEhdkAS6EPFLC1PHnBqCXEpPxuEb")
 const RPC_ENDPOINT = "https://wispy-cold-gadget.solana-mainnet.quiknode.pro/81a007c42698b140c9c618ca05162bcf56f34e8d"
+const WSOL_MINT = "So11111111111111111111111111111111111111112"
 
 // Token Whitelist Interface
 interface WhitelistedToken {
@@ -28,10 +31,21 @@ interface TotalRecycled {
   symbol: string
 }
 
-const CHUNK_SIZE = 5; // 한 번에 처리할 mint 주소 수
+const CHUNK_SIZE = 5; // 한 번에 처리할 mint 주��� 수
 
 interface TokenMetadata {
   image?: string
+}
+
+interface TokenPrice {
+  id: string
+  type: string
+  price: string
+}
+
+interface JupiterPriceResponse {
+  data: Record<string, TokenPrice | null>
+  timeTaken: number
 }
 
 // 이미지 URI를 가져오는 기본 함수
@@ -101,7 +115,7 @@ async function getSftTokens(ownerAddress: string) {
             description: item.json?.description || "",
             imageUri: undefined,
             amount: tokenAccounts.value.find(
-              ta => ta.account.data.parsed.info.mint === item.address.toString()
+              ta => ta.account.data.parsed.info.mint === item.mintAddress.toString()
             )?.account.data.parsed.info.tokenAmount.uiAmount || 0,
             type: TokenType.UNKNOWN
           }
@@ -157,7 +171,110 @@ async function getToken2022s(ownerAddress: string) {
   }
 }
 
-// 캐시된 버전의 함수 생성
+// 토큰 가격 정보를 져오는 함수
+async function fetchTokenPrices(tokenIds: string[]): Promise<Record<string, Decimal>> {
+  try {
+    // 최시된 가격 정보 확인
+    const cachedPrices = await getCachedPrices(tokenIds)
+    
+    // 캐시되지 않은 토큰 ID들 필터링
+    const uncachedTokenIds = tokenIds.filter(id => !cachedPrices[id])
+    
+    // 만료된 캐시 항목 확인
+    const expiredTokenIds = getExpiredTokenIds(cachedPrices)
+    
+    // 조회가 필요한 토큰 ID들
+    const tokensToFetch = [...new Set([...uncachedTokenIds, ...expiredTokenIds])]
+    console.log(`tokensToFetch: ${tokensToFetch.length}`)
+    if (tokensToFetch.length === 0) {
+      // 모든 토큰이 유효한 캐시를 가지고 있는 경우
+      return Object.fromEntries(
+        Object.entries(cachedPrices).map(([id, data]) => [id, data.price])
+      )
+    }
+
+    // 최대 100개씩 나누어 요청
+    const chunks = []
+    for (let i = 0; i < tokensToFetch.length; i += 100) {
+      chunks.push(tokensToFetch.slice(i, i + 100))
+    }
+
+    const newPrices: Record<string, Decimal> = {}
+    
+    for (const chunk of chunks) {
+      const ids = chunk.join(',')
+      const response = await fetch(
+        `https://api.jup.ag/price/v2?ids=${ids}&vsToken=${WSOL_MINT}`
+      )
+      
+      if (!response.ok) {
+        throw new Error(`Failed to fetch prices: ${response.statusText}`)
+      }
+
+      const data: JupiterPriceResponse = await response.json()
+      
+      // 각 토큰의 가격 정보를 저장
+      for (const [tokenId, priceInfo] of Object.entries(data.data)) {
+        if (priceInfo && priceInfo.price) {
+          // 문자열을 Decimal로 직접 변환
+          newPrices[tokenId] = new Decimal(priceInfo.price)
+        } else {
+          newPrices[tokenId] = new Decimal(0)
+        }
+      }
+    }
+
+    // 새로운 가격 정보 개별 캐시 업데이트
+    await Promise.all(
+      Object.entries(newPrices).map(([tokenId, price]) => 
+        updateCachedPrice(tokenId, price)
+      )
+    )
+
+    // 캐시된 가격과 새로운 가격 정보 병합
+    return {
+      ...Object.fromEntries(
+        Object.entries(cachedPrices)
+          .filter(([id]) => !expiredTokenIds.includes(id))
+          .map(([id, data]) => [id, data.price])
+      ),
+      ...newPrices
+    }
+  } catch (error) {
+    console.error('Error fetching token prices:', error)
+    return {}
+  }
+}
+
+// 서버 사이드 폴링을 위한 함수
+export async function updateExpiredPrices(): Promise<void> {
+  try {
+    const cachedPrices = await getAllCachedPrices()
+    const expiredTokenIds = getExpiredTokenIds(cachedPrices)
+
+    if (expiredTokenIds.length > 0) {
+      await fetchTokenPrices(expiredTokenIds)
+    }
+  } catch (error) {
+    console.error('Error updating expired prices:', error)
+  }
+}
+
+// 캐시된 가격 정보를 가져오는 함수
+export async function getTokenPrices(tokenIds: string[]): Promise<Record<string, Decimal>> {
+  return unstable_cache(
+    async () => {
+      return fetchTokenPrices(tokenIds)
+    },
+    ['token-prices'],
+    {
+      revalidate: 60, // 1분마다 갱신
+      tags: ['token-prices']
+    }
+  )()
+}
+
+// fetchTokens 함수 수정
 export async function fetchTokens(ownerAddress: string): Promise<Token[]> {
   return unstable_cache(
     async () => {
@@ -168,7 +285,17 @@ export async function fetchTokens(ownerAddress: string): Promise<Token[]> {
         ])
         
         const tokens = [...sftTokens, ...token2022s]
-        return tokens
+        
+        // 토큰 가격 정보 가져오기
+        const tokenIds = tokens.map(token => token.id)
+        const prices = await getTokenPrices(tokenIds)
+        
+        // 토큰에 SOL 가치 추가
+        return tokens.map(token => ({
+          ...token,
+          amount: token.amount.toString(),
+          solValue: prices[token.id]?.toString() || '0'
+        }));
       } catch (error) {
         console.error('Error in fetchTokens:', error)
         throw error
