@@ -11,6 +11,7 @@ import { usePoints } from '@/contexts/PointsContext'
 import { Win98Frame, Win98TitleBar, Win98InnerFrame, Win98ContentArea, Win98Footer, Win98FooterContent } from '../shared/ui/win98'
 import Toast from '../shared/Toast'
 import { useTokens } from '@/hooks/useTokens'
+import { useVaultInfo } from '@/hooks/useVaultInfo'
 
 export default function MainWindow() {
   const { connected, publicKey } = useWallet()
@@ -25,6 +26,9 @@ export default function MainWindow() {
     type: 'success' | 'error';
   } | null>(null)
   const { tokens, isLoading, mutate } = useTokens(publicKey?.toString())
+  const { vaultInfo, isLoading: isVaultLoading } = useVaultInfo()
+
+  const totalVolume = Number(vaultInfo.totalSolDeposited) / 1e9
 
   const handleTokenSelect = (tokenId: string) => {
     setSelectedTokens(prev => 
@@ -119,8 +123,13 @@ export default function MainWindow() {
       ">
         <Win98TitleBar className="h-[36px] bg-[#503D9E] text-white flex-shrink-0">
           <div className="flex justify-between items-center w-full">
-            <div className="text-base leading-8 font-[700] pl-5">
-              Volumee - {points} SOL
+            <div className="flex items-center gap-2 ml-2">
+              <span className="font-ms-sans text-[16px] leading-[34px] text-[#0A0A0A]">
+                Volume
+              </span>
+              <span className="font-ms-sans text-[16px] leading-[34px] text-[#0A0A0A]">
+                {isVaultLoading ? "Loading..." : `${totalVolume.toFixed(4)} SOL`}
+              </span>
             </div>
             <div className="flex items-center">
               <div 

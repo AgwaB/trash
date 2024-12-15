@@ -2,6 +2,7 @@ import React from 'react'
 import Image from 'next/image'
 import { Token, TokenDescription } from '@/types/token'
 import { getTokenFallbackImage as getPredefinedTokenImage } from '@/constants/tokenImages'
+import { formatAmount } from '@/utils/formatNumber'
 
 interface TokenItemProps {
   token: Token
@@ -54,7 +55,7 @@ export default function TokenItem({ token, index, onSelect, isSelected }: TokenI
             />
           </div>
           <span className={`font-ms-sans text-[16px] leading-[34px] ${isSelected ? 'text-[#FEFEFE]' : 'text-[#0A0A0A] group-hover:text-[#FEFEFE]'}`}>
-            {`$${token.symbol}(${token.amount})`}
+            {`$${token.symbol}(${formatAmount(Number(token.amount))})`}
           </span>
         </div>
       </div>

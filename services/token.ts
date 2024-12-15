@@ -31,7 +31,7 @@ interface TotalRecycled {
   symbol: string
 }
 
-const CHUNK_SIZE = 5; // 한 번에 처리할 mint 주��� 수
+const CHUNK_SIZE = 5; // 한 번에 처리할 mint 주 수
 
 interface TokenMetadata {
   image?: string
@@ -327,5 +327,36 @@ export async function fetchRecentRecycled(): Promise<RecentRecycled> {
   return {
     amount: Math.floor(Math.random() * 1000000),
     symbol: "$WIF"
+  }
+}
+
+// 개별 토큰 조회 함수
+export async function fetchToken(mintAddress: string): Promise<Token | null> {
+  try {
+    const connection = new Connection(RPC_ENDPOINT)
+    const metaplex = new Metaplex(connection)
+    const mintPubkey = new PublicKey(mintAddress)
+
+    const metadata = await metaplex.nfts().findByMint({ mintAddress: mintPubkey })
+    
+    if (!metadata) return null
+
+    const token: Token = {
+      id: metadata.mintAddress.toString(),
+      mint: metadata.address.toString(),
+      name: metadata.name,
+      symbol: metadata.symbol,
+      uri: metadata.uri,
+      description: metadata.json?.description || "",
+      imageUri: undefined,
+      amount: "0", // amount는 여기서는 필요 없음
+      type: TokenType.UNKNOWN
+    }
+
+    token.imageUri = await getTokenImageUri(token)
+    return token
+  } catch (error) {
+    console.error('Error fetching token:', error)
+    return null
   }
 }

@@ -1,0 +1,642 @@
+{
+  "address": "6f4N9MXSj3cFvww5kxMtWR9Ch1a3kXijfzE2S3w9xYm2",
+  "metadata": {
+    "name": "trash",
+    "version": "0.1.0",
+    "spec": "0.1.0",
+    "description": "Created with Anchor"
+  },
+  "instructions": [
+    {
+      "name": "initialize",
+      "discriminator": [
+        175,
+        175,
+        109,
+        31,
+        13,
+        152,
+        155,
+        237
+      ],
+      "accounts": [
+        {
+          "name": "signer",
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "admin",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  65,
+                  68,
+                  77,
+                  73,
+                  78
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "vault",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  86,
+                  65,
+                  85,
+                  76,
+                  84
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "system_program",
+          "address": "11111111111111111111111111111111"
+        }
+      ],
+      "args": []
+    },
+    {
+      "name": "recycle_token",
+      "discriminator": [
+        2,
+        176,
+        42,
+        217,
+        78,
+        224,
+        113,
+        177
+      ],
+      "accounts": [
+        {
+          "name": "user",
+          "writable": true,
+          "signer": true,
+          "relations": [
+            "user_stats"
+          ]
+        },
+        {
+          "name": "user_stats",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  85,
+                  83,
+                  69,
+                  82,
+                  95,
+                  83,
+                  84,
+                  65,
+                  84,
+                  83
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "user"
+              }
+            ]
+          }
+        },
+        {
+          "name": "mint"
+        },
+        {
+          "name": "user_token_account",
+          "writable": true
+        },
+        {
+          "name": "vault",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  86,
+                  65,
+                  85,
+                  76,
+                  84
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "vault_token_account",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  84,
+                  82,
+                  69,
+                  65,
+                  83,
+                  85,
+                  82,
+                  89
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "mint"
+              }
+            ]
+          }
+        },
+        {
+          "name": "label",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  76,
+                  65,
+                  66,
+                  69,
+                  76
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "mint"
+              }
+            ]
+          }
+        },
+        {
+          "name": "recycle_data",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  82,
+                  69,
+                  67,
+                  89,
+                  67,
+                  76,
+                  69,
+                  95,
+                  68,
+                  65,
+                  84,
+                  65
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "user"
+              },
+              {
+                "kind": "account",
+                "path": "user_stats.recycle_count",
+                "account": "UserStats"
+              }
+            ]
+          }
+        },
+        {
+          "name": "token_program"
+        },
+        {
+          "name": "system_program",
+          "address": "11111111111111111111111111111111"
+        }
+      ],
+      "args": [
+        {
+          "name": "token_amount",
+          "type": "u64"
+        }
+      ]
+    },
+    {
+      "name": "update_admin",
+      "discriminator": [
+        161,
+        176,
+        40,
+        213,
+        60,
+        184,
+        179,
+        228
+      ],
+      "accounts": [
+        {
+          "name": "authority",
+          "writable": true,
+          "signer": true,
+          "relations": [
+            "admin"
+          ]
+        },
+        {
+          "name": "admin",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  65,
+                  68,
+                  77,
+                  73,
+                  78
+                ]
+              }
+            ]
+          }
+        }
+      ],
+      "args": [
+        {
+          "name": "new_authority",
+          "type": "pubkey"
+        }
+      ]
+    },
+    {
+      "name": "update_label",
+      "discriminator": [
+        168,
+        82,
+        56,
+        179,
+        161,
+        246,
+        98,
+        2
+      ],
+      "accounts": [
+        {
+          "name": "authority",
+          "writable": true,
+          "signer": true,
+          "relations": [
+            "admin"
+          ]
+        },
+        {
+          "name": "mint"
+        },
+        {
+          "name": "admin",
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  65,
+                  68,
+                  77,
+                  73,
+                  78
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "label",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  76,
+                  65,
+                  66,
+                  69,
+                  76
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "mint"
+              }
+            ]
+          }
+        },
+        {
+          "name": "system_program",
+          "address": "11111111111111111111111111111111"
+        }
+      ],
+      "args": [
+        {
+          "name": "name",
+          "type": "string"
+        },
+        {
+          "name": "multiplier",
+          "type": "u64"
+        }
+      ]
+    },
+    {
+      "name": "withdraw_sol",
+      "discriminator": [
+        145,
+        131,
+        74,
+        136,
+        65,
+        137,
+        42,
+        38
+      ],
+      "accounts": [
+        {
+          "name": "authority",
+          "writable": true,
+          "signer": true,
+          "relations": [
+            "admin"
+          ]
+        },
+        {
+          "name": "admin",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  65,
+                  68,
+                  77,
+                  73,
+                  78
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "vault",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  86,
+                  65,
+                  85,
+                  76,
+                  84
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "system_program",
+          "address": "11111111111111111111111111111111"
+        }
+      ],
+      "args": [
+        {
+          "name": "amount",
+          "type": "u64"
+        }
+      ]
+    }
+  ],
+  "accounts": [
+    {
+      "name": "Admin",
+      "discriminator": [
+        244,
+        158,
+        220,
+        65,
+        8,
+        73,
+        4,
+        65
+      ]
+    },
+    {
+      "name": "Label",
+      "discriminator": [
+        81,
+        55,
+        13,
+        178,
+        66,
+        159,
+        10,
+        78
+      ]
+    },
+    {
+      "name": "RecycleData",
+      "discriminator": [
+        85,
+        207,
+        82,
+        240,
+        110,
+        53,
+        125,
+        251
+      ]
+    },
+    {
+      "name": "UserStats",
+      "discriminator": [
+        176,
+        223,
+        136,
+        27,
+        122,
+        79,
+        32,
+        227
+      ]
+    },
+    {
+      "name": "Vault",
+      "discriminator": [
+        211,
+        8,
+        232,
+        43,
+        2,
+        152,
+        117,
+        119
+      ]
+    }
+  ],
+  "errors": [
+    {
+      "code": 6000,
+      "name": "InvalidAuthority",
+      "msg": "Invalid authority"
+    },
+    {
+      "code": 6001,
+      "name": "Overflow",
+      "msg": "Arithmetic overflow"
+    },
+    {
+      "code": 6002,
+      "name": "InsufficientBalance",
+      "msg": "Insufficient balance"
+    },
+    {
+      "code": 6003,
+      "name": "InvalidAmount",
+      "msg": "Invalid amount"
+    }
+  ],
+  "types": [
+    {
+      "name": "Admin",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "authority",
+            "type": "pubkey"
+          }
+        ]
+      }
+    },
+    {
+      "name": "Label",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "mint",
+            "type": "pubkey"
+          },
+          {
+            "name": "name",
+            "type": "string"
+          },
+          {
+            "name": "multiplier",
+            "type": "u64"
+          }
+        ]
+      }
+    },
+    {
+      "name": "RecycleData",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "user",
+            "type": "pubkey"
+          },
+          {
+            "name": "token_mint",
+            "type": "pubkey"
+          },
+          {
+            "name": "token_amount",
+            "type": "u64"
+          },
+          {
+            "name": "sol_received",
+            "type": "u64"
+          },
+          {
+            "name": "points_earned",
+            "type": "u64"
+          },
+          {
+            "name": "timestamp",
+            "type": "i64"
+          }
+        ]
+      }
+    },
+    {
+      "name": "UserStats",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "user",
+            "type": "pubkey"
+          },
+          {
+            "name": "recycle_count",
+            "type": "u64"
+          },
+          {
+            "name": "total_sol_received",
+            "type": "u64"
+          },
+          {
+            "name": "total_points_earned",
+            "type": "u64"
+          },
+          {
+            "name": "last_updated",
+            "type": "i64"
+          }
+        ]
+      }
+    },
+    {
+      "name": "Vault",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "total_sol_deposited",
+            "type": "u64"
+          },
+          {
+            "name": "total_sol_withdrawn",
+            "type": "u64"
+          }
+        ]
+      }
+    }
+  ],
+  "constants": [
+    {
+      "name": "SEED",
+      "type": "string",
+      "value": "\"anchor\""
+    }
+  ]
+}

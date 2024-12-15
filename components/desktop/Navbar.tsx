@@ -5,11 +5,19 @@ import { useWallet } from '@solana/wallet-adapter-react'
 import WalletModal from '../shared/WalletModal'
 import { usePoints } from '@/contexts/PointsContext'
 import WalletButton from './WalletButton'
+import { fetchUserStats } from '@/services/contract'
 
-export default function Navbar() {
+interface NavbarProps {
+  userStats: {
+    totalPointsEarned: string;
+    // ... other stats
+  } | null
+}
+
+export default function Navbar({ userStats }: NavbarProps) {
   const { } = useWallet()
   const [isWalletModalOpen, setIsWalletModalOpen] = useState(false)
-  const { points } = usePoints()
+  const points = userStats ? Number(userStats.totalPointsEarned) : 0
 
   return (
     <>
@@ -42,7 +50,7 @@ export default function Navbar() {
                 />
               </div>
               <span className="text-[#DFDFDF] font-ms-sans text-[14px]">
-                {points}
+                {points.toFixed(2)}
               </span>
             </div>
             <div className="block md:hidden">
