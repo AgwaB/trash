@@ -3,7 +3,7 @@ import { useState, useEffect, useRef } from 'react'
 import { fetchRecentRecycles } from '@/services/contract'
 import { fetchToken } from '@/services/token'
 import { PublicKey } from '@solana/web3.js'
-import BN from 'bn.js'
+import { BN } from '@coral-xyz/anchor'
 
 interface RecentRecycleWithMetadata {
   amount: number

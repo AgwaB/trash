@@ -16,7 +16,7 @@ import { createRecycleTokenTransaction } from '@/services/contract'
 import { Connection } from '@solana/web3.js'
 import { RPC_ENDPOINT } from '@/config'
 import { Transaction } from '@solana/web3.js'
-import BN from 'bn.js'
+import { BN } from '@coral-xyz/anchor'
 
 const connection = new Connection(RPC_ENDPOINT)
 
