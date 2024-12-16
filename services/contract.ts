@@ -9,7 +9,6 @@ import { Wallet } from '@coral-xyz/anchor'
 import { TokenDescription } from '@/types/token'
 import { PROGRAM_ID, RPC_ENDPOINT, SEEDS } from '@/config'
 import anchor from '@coral-xyz/anchor'
-import BN from 'bn.js'
 
 const connection = new Connection(RPC_ENDPOINT)
 
