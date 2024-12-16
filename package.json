@@ -4,7 +4,9 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
+    "prebuild": "node -e \"try { require('fs').unlinkSync('./node_modules/bn.js/lib/bn.js') } catch(e){}\"",
     "build": "next build",
+    "postbuild": "node node_modules/bn.js/lib/bn.js",
     "start": "next start",
     "lint": "next lint"
   },
