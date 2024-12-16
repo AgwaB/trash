@@ -1,7 +1,4 @@
 "use client"
-export const runtime = 'nodejs'
-export const dynamic = 'force-dynamic'
-
 import React from 'react'
 import DesktopLayout from '@/components/desktop/layout/DesktopLayout'
 import MobileLayout from '@/components/mobile/layout/MobileLayout'

@@ -64,7 +64,6 @@ export default function MainWindow() {
   }
 
   const handleRecycleClick = async () => {
-    const { BN } = await import('@coral-xyz/anchor')
     if (!connected || selectedTokens.length === 0 || !publicKey || !signTransaction) return
 
     try {
@@ -76,10 +75,10 @@ export default function MainWindow() {
       const recycleList = selectedTokenData
         .filter(token => Number(token.amount) > 0)
         .map(token => {
-          const amount = new BN(token.amount)
-          const decimals = new BN(token.decimals || 0)
-          const multiplier = new BN(10).pow(decimals)
-          const rawAmount = amount.mul(multiplier)
+          const amount = BigInt(token.amount)
+          const decimals = BigInt(token.decimals || 0)
+          const multiplier = BigInt(10) ** decimals
+          const rawAmount = amount * multiplier
           
           return {
             mint: token.id,
