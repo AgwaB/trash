@@ -14,7 +14,6 @@ import { createRecycleTokenTransaction } from '@/services/contract'
 import { Connection } from '@solana/web3.js'
 import { RPC_ENDPOINT } from '@/config'
 import { Transaction } from '@solana/web3.js'
-import { BN } from '@coral-xyz/anchor'
 
 const connection = new Connection(RPC_ENDPOINT)
 
@@ -55,6 +54,7 @@ export default function MobileMainWindow() {
   }
 
   const handleRecycleClick = async () => {
+    const { BN } = await import('@coral-xyz/anchor')
     if (!connected || selectedTokens.length === 0 || !publicKey || !signTransaction) return
 
     try {
