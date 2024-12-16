@@ -34,6 +34,7 @@ export default function MainWindow() {
   } | null>(null)
   const { tokens, isLoading, mutate } = useTokens(publicKey?.toString())
   const { vaultInfo, isLoading: isVaultLoading } = useVaultInfo()
+  const [isRecycling, setIsRecycling] = useState(false)
 
   const totalVolume = Number(vaultInfo.totalSolDeposited) / 1e9
 
@@ -67,6 +68,8 @@ export default function MainWindow() {
     if (!connected || selectedTokens.length === 0 || !publicKey || !signTransaction) return
 
     try {
+      // 로딩 상태 추가
+      setIsRecycling(true)
       // 선택된 토큰들 가져오기
       const selectedTokenData = tokens?.filter(token => selectedTokens.includes(token.id))
       if (!selectedTokenData) return
@@ -110,14 +113,18 @@ export default function MainWindow() {
         type: 'success'
       })
       
-      // 토큰 목록 수동 갱신
-      await mutate()
+      await new Promise(resolve => setTimeout(resolve, 2000))
+      await mutate(undefined, { 
+        revalidate: true 
+      })
     } catch (error) {
       console.error('토큰 리사이클 중 오류:', error)
       setToast({
         message: error instanceof Error ? error.message : "리사이클에 실패했습니다",
         type: 'error'
       })
+    } finally {
+      setIsRecycling(false)
     }
   }
 

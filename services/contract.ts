@@ -1,7 +1,7 @@
 // services/contract.ts
 "use server"
-import { Connection, SystemProgram, Transaction } from '@solana/web3.js'
-import { Program, AnchorProvider } from '@coral-xyz/anchor'
+import { Connection, SystemProgram, Transaction, PublicKey } from '@solana/web3.js'
+import { Program, AnchorProvider, BN } from '@coral-xyz/anchor'
 import { Trash } from './idl/trash'
 import IDL from './idl/trash.json'
 import { TOKEN_PROGRAM_ID } from '@solana/spl-token'
@@ -22,8 +22,7 @@ async function getProgram(wallet?: Wallet) {
 }
 
 // PDA 주소 가져오기 함수들
-export async function getAdminPDA(): Promise<any> {
-  const { PublicKey } = await import('@solana/web3.js')
+export async function getAdminPDA(): Promise<PublicKey> {
   const [pda] = await PublicKey.findProgramAddressSync(
     [Buffer.from(SEEDS.ADMIN)],
     PROGRAM_ID
@@ -31,8 +30,7 @@ export async function getAdminPDA(): Promise<any> {
   return pda
 }
 
-export async function getVaultPDA(): Promise<any> {
-  const { PublicKey } = await import('@solana/web3.js')
+export async function getVaultPDA(): Promise<PublicKey> {
   const [pda] = await PublicKey.findProgramAddressSync(
     [Buffer.from(SEEDS.VAULT)],
     PROGRAM_ID
@@ -40,8 +38,7 @@ export async function getVaultPDA(): Promise<any> {
   return pda
 }
 
-export async function getLabelPDA(mint: any): Promise<any> {
-  const { PublicKey } = await import('@solana/web3.js')
+export async function getLabelPDA(mint: any): Promise<PublicKey> {
   const [pda] = await PublicKey.findProgramAddressSync(
     [Buffer.from(SEEDS.LABEL), mint.toBuffer()],
     PROGRAM_ID
@@ -49,8 +46,7 @@ export async function getLabelPDA(mint: any): Promise<any> {
   return pda
 }
 
-export async function getUserStatsPDA(user: any): Promise<any> {
-  const { PublicKey } = await import('@solana/web3.js')
+export async function getUserStatsPDA(user: any): Promise<PublicKey> {
   const [pda] = await PublicKey.findProgramAddressSync(
     [Buffer.from(SEEDS.USER_STATS), user.toBuffer()],
     PROGRAM_ID
@@ -58,8 +54,7 @@ export async function getUserStatsPDA(user: any): Promise<any> {
   return pda
 }
 
-export async function getRecycleDataPDA(user: any, mint: any): Promise<any> {
-  const { PublicKey } = await import('@solana/web3.js')
+export async function getRecycleDataPDA(user: any, mint: any): Promise<PublicKey> {
   const [pda] = await PublicKey.findProgramAddressSync(
     [Buffer.from(SEEDS.RECYCLE_DATA), user.toBuffer(), mint.toBuffer()],
     PROGRAM_ID
@@ -70,7 +65,6 @@ export async function getRecycleDataPDA(user: any, mint: any): Promise<any> {
 // 컨트랙트 데이터 조회 함수들
 export async function fetchUserStats(userAddress: string) {
   try {
-    const { PublicKey } = await import('@solana/web3.js')
     const userPubkey = new PublicKey(userAddress)
     const userStatsPDA = await getUserStatsPDA(userPubkey)
     
@@ -96,7 +90,6 @@ export async function fetchUserStats(userAddress: string) {
 
 export async function fetchTokenLabel(mintAddress: string) {
   try {
-    const { PublicKey } = await import('@solana/web3.js')
     const mintPubkey = new PublicKey(mintAddress)
     const labelPDA = await getLabelPDA(mintPubkey)
     
@@ -172,15 +165,13 @@ export async function createRecycleTokenTransaction(
   tokens: { mint: string, amount: string }[]
 ) {
   try {
-    const { PublicKey } = await import('@solana/web3.js')
-    const { BN } = await import('@coral-xyz/anchor')
     const userPublicKey = new PublicKey(userPublicKeyStr)
     const program = await getProgram()
     
     const tx = new Transaction()
     
     for (const { mint, amount } of tokens) {
-      const timestamp = new BN(Date.now().toString(), 10)
+      const timestamp = new BN(Date.now())
       const mintPubkey = new PublicKey(mint)
       
       // PDA 계정들 생성
@@ -198,7 +189,7 @@ export async function createRecycleTokenTransaction(
         [
           Buffer.from(SEEDS.RECYCLE_DATA),
           userPublicKey.toBuffer(),
-          Buffer.from(timestamp.toString())
+          Buffer.from(timestamp.toArray('le', 8))
         ],
         PROGRAM_ID
       )
@@ -245,7 +236,7 @@ export async function createRecycleTokenTransaction(
       // Create instruction with BigInt
       const instruction = await program.methods
         .recycleToken(
-          new BN(amount.toString(), 10),
+          new BN(amount.toString()),
           timestamp
         )
         .accounts(accounts)
@@ -276,7 +267,6 @@ export async function createRecycleTokenTransaction(
 // 사용자 토큰 계정 조회
 export async function getUserTokenAccounts(userAddress: string) {
   try {
-    const { PublicKey } = await import('@solana/web3.js')
     const userPubkey = new PublicKey(userAddress)
     const tokenAccounts = await connection.getParsedTokenAccountsByOwner(
       userPubkey,
@@ -309,7 +299,6 @@ export async function getUserTokenAccounts(userAddress: string) {
 // 특정 사용자의 리사이클 히스토리 조회
 export async function getUserRecycleHistory(userAddress: string) {
   try {
-    const { PublicKey } = await import('@solana/web3.js')
     const program = await getProgram()
     const userPubkey = new PublicKey(userAddress)
     

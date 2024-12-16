@@ -20,7 +20,6 @@ export function useRecentRecycles() {
 
   const setHighlight = (value: boolean) => {
     setShouldHighlight(value)
-    console.log(value ? "turn on" : "turn off")
   }
 
   useEffect(() => {
@@ -40,7 +39,6 @@ export function useRecentRecycles() {
           console.error("Token not found")
           return
         }
-        console.log(`token: ${JSON.stringify(token)}`)
 
         const rawAmount = BigInt(latestRecycle.tokenAmount)
         const decimals = BigInt(token.decimals || 0)

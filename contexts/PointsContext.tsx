@@ -1,7 +1,7 @@
 "use client"
 import React, { createContext, useContext, useState, useEffect } from 'react'
 import { useWallet } from '@solana/wallet-adapter-react'
-import { fetchPoints } from '@/services/token'
+import { fetchUserStats } from '@/services/contract'
 
 interface PointsContextType {
   points: string
@@ -20,8 +20,8 @@ export function PointsProvider({ children }: { children: React.ReactNode }) {
   const refreshPoints = async () => {
     if (connected && publicKey) {
       try {
-        const newPoints = await fetchPoints(publicKey.toString())
-        setPoints(newPoints.toLocaleString())
+        const userStats = await fetchUserStats(publicKey.toString())
+        setPoints(userStats.totalPointsEarned.toLocaleString())
       } catch (error) {
         console.error('Failed to fetch points:', error)
         setPoints("0.00")

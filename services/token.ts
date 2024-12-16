@@ -1,7 +1,7 @@
 // services/token.ts
 "use server"
-import { Connection } from "@solana/web3.js"
-import { Metaplex, Nft, Sft } from "@metaplex-foundation/js"
+import { Connection, PublicKey } from "@solana/web3.js"
+import { Metaplex } from "@metaplex-foundation/js"
 import { getTokenMetadata } from "@solana/spl-token"
 import { Token, TokenType } from "@/types/token"
 import { unstable_cache } from 'next/cache'
@@ -75,7 +75,6 @@ async function getTokenImageUri(token: Token): Promise<string | undefined> {
 
 async function getSftTokens(ownerAddress: string) {
   try {
-    const { PublicKey } = await import('@solana/web3.js')
     const connection = new Connection(RPC_ENDPOINT)
     const metaplex = new Metaplex(connection)
     
@@ -136,7 +135,6 @@ async function getSftTokens(ownerAddress: string) {
 
 async function getToken2022s(ownerAddress: string) {
   try {
-    const { PublicKey } = await import('@solana/web3.js')
     const connection = new Connection(RPC_ENDPOINT)
     const owner = new PublicKey(ownerAddress)
 
@@ -189,7 +187,6 @@ async function fetchTokenPrices(tokenIds: string[]): Promise<Record<string, Deci
     
     // 조회가 필요한 토큰 ID들
     const tokensToFetch = [...new Set([...uncachedTokenIds, ...expiredTokenIds])]
-    console.log(`tokensToFetch: ${tokensToFetch.length}`)
     if (tokensToFetch.length === 0) {
       // 모든 토큰이 유효한 캐시를 가지고 있는 경우
       return Object.fromEntries(
@@ -321,31 +318,9 @@ export async function fetchTokens(ownerAddress: string): Promise<Token[]> {
   )()
 }
 
-export async function fetchPoints(address: string): Promise<number> {
-  // TODO: Implement points fetching logic
-  return Math.floor(Math.random() * 1000000)
-}
-
-export async function fetchTotalRecycled(): Promise<TotalRecycled> {
-  // TODO: Implement total recycled fetching logic
-  return {
-    amount: Math.floor(Math.random() * 10000000),
-    symbol: "$PEPE"
-  }
-}
-
-export async function fetchRecentRecycled(): Promise<RecentRecycled> {
-  // TODO: Implement recent recycled fetching logic
-  return {
-    amount: Math.floor(Math.random() * 1000000),
-    symbol: "$WIF"
-  }
-}
-
 // 개별 토큰 조회 함수
 export async function fetchToken(mintAddress: string): Promise<Token | undefined> {
   try {
-    const { PublicKey } = await import('@solana/web3.js')
     const connection = new Connection(RPC_ENDPOINT)
     const metaplex = new Metaplex(connection)
     const mintPubkey = new PublicKey(mintAddress)

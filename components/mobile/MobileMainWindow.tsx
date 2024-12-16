@@ -30,6 +30,7 @@ export default function MobileMainWindow() {
   } | null>(null)
   const { tokens, isLoading, mutate } = useTokens(publicKey?.toString())
   const { vaultInfo, isLoading: isVaultLoading } = useVaultInfo()
+  const [isRecycling, setIsRecycling] = useState(false)
 
   const totalVolume = Number(vaultInfo.totalSolDeposited) / 1e9
 
@@ -53,10 +54,20 @@ export default function MobileMainWindow() {
     return 'Recycle'
   }
 
+  const getButtonImage = () => {
+    if (!connected) {
+      return '/images/recycle.png'
+    }
+    return isRecycling ? '/images/mobile-recycle-pressed.png' : '/images/mobile-recycle.png'
+  }
+
   const handleRecycleClick = async () => {
     if (!connected || selectedTokens.length === 0 || !publicKey || !signTransaction) return
 
     try {
+      // 로딩 상태 추가
+      setIsRecycling(true)
+
       // 선택된 토큰들 가져오기
       const selectedTokenData = tokens?.filter(token => selectedTokens.includes(token.id))
       if (!selectedTokenData) return
@@ -71,7 +82,7 @@ export default function MobileMainWindow() {
           const rawAmount = amount * multiplier
           
           return {
-            mint: token.mint,
+            mint: token.id,
             amount: rawAmount.toString()
           }
         })
@@ -92,22 +103,30 @@ export default function MobileMainWindow() {
       
       // 트랜잭션 전송
       const signature = await connection.sendRawTransaction(signedTx.serialize())
+      
+      // 트랜잭션 확인 및 목록 갱신
       await connection.confirmTransaction(signature)
-
+      
       setSelectedTokens([])
       setToast({
         message: "리사이클이 완료되었습니다",
         type: 'success'
       })
       
-      // 토큰 목록 수동 갱신
-      await mutate()
+      // 2초 대기 후 새로고침
+      await new Promise(resolve => setTimeout(resolve, 2000))
+      await mutate(undefined, { 
+        revalidate: true 
+      })
+
     } catch (error) {
       console.error('토큰 리사이클 중 오류:', error)
       setToast({
         message: error instanceof Error ? error.message : "리사이클에 실패했습니다",
         type: 'error'
       })
+    } finally {
+      setIsRecycling(false)
     }
   }
 
@@ -148,21 +167,21 @@ export default function MobileMainWindow() {
 
   return (
     <>
-      <div className="flex flex-col h-full">
+      <div className="flex flex-col h-full bg-[#503D9E]">
         {/* Header */}
-        <div className="h-[36px] bg-[#503D9E] text-white flex-shrink-0">
+        <div className="h-[36px] flex-shrink-0">
           <div className="flex justify-between items-center w-full h-full px-4">
             <div className="flex items-center gap-2">
-              <span className="font-ms-sans text-[16px] leading-[34px] text-[#0A0A0A]">
+              <span className="font-ms-sans text-[16px] leading-[34px] text-white">
                 Volume
               </span>
-              <span className="font-ms-sans text-[16px] leading-[34px] text-[#0A0A0A]">
+              <span className="font-ms-sans text-[16px] leading-[34px] text-white">
                 {isVaultLoading ? "Loading..." : `${totalVolume.toFixed(4)} SOL`}
               </span>
             </div>
             <div className="flex items-center">
               <div 
-                className="text-base leading-6 underline cursor-pointer mr-3"
+                className="text-base leading-6 underline cursor-pointer mr-3 text-white"
                 onClick={() => setIsHowItWorksOpen(true)}
               >
                 How it works
@@ -192,14 +211,14 @@ export default function MobileMainWindow() {
         </div>
 
         {/* Content */}
-        <div className="flex-1 min-h-0 flex flex-col">
+        <div className="flex-1 min-h-0 flex flex-col bg-white mx-1">
           <div className="flex-1 min-h-0">
             {renderContent()}
           </div>
         </div>
 
         {/* Footer */}
-        <div className="flex-shrink-0">
+        <div className="flex-shrink-0 bg-[#AA9ECA] mx-1 mb-1">
           <div className="h-[2px] border-t border-t-[#CCC0F8] border-b border-b-[#776EBA]" />
           <div className="p-4 flex flex-col items-center">
             {connected && (
@@ -222,12 +241,20 @@ export default function MobileMainWindow() {
               }}
               onMouseDown={() => setIsPressed(true)}
               onMouseUp={() => setIsPressed(false)}
-              className={`w-[208px] h-[38px] bg-[#503D9E] text-white font-ms-sans text-[14px] font-[700] 
-                        ${isPressed ? 'bg-[#3C2D7C]' : ''} 
-                        ${getButtonOpacity()}`}
-              disabled={connected && (tokens?.length === 0 || selectedTokens.length === 0)}
+              className="relative w-[208px] h-[38px] flex items-center justify-center"
+              disabled={isRecycling || (connected && (tokens?.length === 0 || selectedTokens.length === 0))}
             >
-              {getButtonText()}
+              <Image
+                src={getButtonImage()}
+                alt="Action Button"
+                width={208}
+                height={38}
+                className={`object-contain ${getButtonOpacity()}`}
+              />
+              <span className="absolute inset-0 flex items-center justify-center 
+                 font-ms-sans text-[14px] text-white font-[700]">
+                {isRecycling ? 'Processing...' : getButtonText()}
+              </span>
             </button>
           </div>
         </div>
