@@ -1,5 +1,6 @@
+// services/token.ts
 "use server"
-import { Connection, PublicKey } from "@solana/web3.js"
+import { Connection } from "@solana/web3.js"
 import { Metaplex, Nft, Sft } from "@metaplex-foundation/js"
 import { getTokenMetadata } from "@solana/spl-token"
 import { Token, TokenType } from "@/types/token"
@@ -74,6 +75,7 @@ async function getTokenImageUri(token: Token): Promise<string | undefined> {
 
 async function getSftTokens(ownerAddress: string) {
   try {
+    const { PublicKey } = await import('@solana/web3.js')
     const connection = new Connection(RPC_ENDPOINT)
     const metaplex = new Metaplex(connection)
     
@@ -134,6 +136,7 @@ async function getSftTokens(ownerAddress: string) {
 
 async function getToken2022s(ownerAddress: string) {
   try {
+    const { PublicKey } = await import('@solana/web3.js')
     const connection = new Connection(RPC_ENDPOINT)
     const owner = new PublicKey(ownerAddress)
 
@@ -342,6 +345,7 @@ export async function fetchRecentRecycled(): Promise<RecentRecycled> {
 // 개별 토큰 조회 함수
 export async function fetchToken(mintAddress: string): Promise<Token | undefined> {
   try {
+    const { PublicKey } = await import('@solana/web3.js')
     const connection = new Connection(RPC_ENDPOINT)
     const metaplex = new Metaplex(connection)
     const mintPubkey = new PublicKey(mintAddress)

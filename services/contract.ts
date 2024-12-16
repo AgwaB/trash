@@ -1,5 +1,6 @@
+// services/contract.ts
 "use server"
-import { Connection, PublicKey, SystemProgram, Transaction } from '@solana/web3.js'
+import { Connection, SystemProgram, Transaction } from '@solana/web3.js'
 import { Program, AnchorProvider } from '@coral-xyz/anchor'
 import { Trash } from './idl/trash'
 import IDL from './idl/trash.json'
@@ -11,17 +12,18 @@ import { PROGRAM_ID, RPC_ENDPOINT, SEEDS } from '@/config'
 
 const connection = new Connection(RPC_ENDPOINT)
 
-function getProgram(wallet?: Wallet) {
+async function getProgram(wallet?: Wallet) {
   const provider = new AnchorProvider(
     connection,
-    wallet || {} as any, // wallet이 없으면 read-only
+    wallet || {} as any,
     { commitment: 'confirmed' }
   )
   return new Program<Trash>(IDL as Trash, provider)
 }
 
 // PDA 주소 가져오기 함수들
-export async function getAdminPDA(): Promise<PublicKey> {
+export async function getAdminPDA(): Promise<any> {
+  const { PublicKey } = await import('@solana/web3.js')
   const [pda] = await PublicKey.findProgramAddressSync(
     [Buffer.from(SEEDS.ADMIN)],
     PROGRAM_ID
@@ -29,7 +31,8 @@ export async function getAdminPDA(): Promise<PublicKey> {
   return pda
 }
 
-export async function getVaultPDA(): Promise<PublicKey> {
+export async function getVaultPDA(): Promise<any> {
+  const { PublicKey } = await import('@solana/web3.js')
   const [pda] = await PublicKey.findProgramAddressSync(
     [Buffer.from(SEEDS.VAULT)],
     PROGRAM_ID
@@ -37,7 +40,8 @@ export async function getVaultPDA(): Promise<PublicKey> {
   return pda
 }
 
-export async function getLabelPDA(mint: PublicKey): Promise<PublicKey> {
+export async function getLabelPDA(mint: any): Promise<any> {
+  const { PublicKey } = await import('@solana/web3.js')
   const [pda] = await PublicKey.findProgramAddressSync(
     [Buffer.from(SEEDS.LABEL), mint.toBuffer()],
     PROGRAM_ID
@@ -45,7 +49,8 @@ export async function getLabelPDA(mint: PublicKey): Promise<PublicKey> {
   return pda
 }
 
-export async function getUserStatsPDA(user: PublicKey): Promise<PublicKey> {
+export async function getUserStatsPDA(user: any): Promise<any> {
+  const { PublicKey } = await import('@solana/web3.js')
   const [pda] = await PublicKey.findProgramAddressSync(
     [Buffer.from(SEEDS.USER_STATS), user.toBuffer()],
     PROGRAM_ID
@@ -53,7 +58,8 @@ export async function getUserStatsPDA(user: PublicKey): Promise<PublicKey> {
   return pda
 }
 
-export async function getRecycleDataPDA(user: PublicKey, mint: PublicKey): Promise<PublicKey> {
+export async function getRecycleDataPDA(user: any, mint: any): Promise<any> {
+  const { PublicKey } = await import('@solana/web3.js')
   const [pda] = await PublicKey.findProgramAddressSync(
     [Buffer.from(SEEDS.RECYCLE_DATA), user.toBuffer(), mint.toBuffer()],
     PROGRAM_ID
@@ -64,10 +70,11 @@ export async function getRecycleDataPDA(user: PublicKey, mint: PublicKey): Promi
 // 컨트랙트 데이터 조회 함수들
 export async function fetchUserStats(userAddress: string) {
   try {
+    const { PublicKey } = await import('@solana/web3.js')
     const userPubkey = new PublicKey(userAddress)
     const userStatsPDA = await getUserStatsPDA(userPubkey)
     
-    const program = getProgram()
+    const program = await getProgram()
     const userStats = await program.account.userStats.fetch(userStatsPDA)
     
     return {
@@ -89,10 +96,11 @@ export async function fetchUserStats(userAddress: string) {
 
 export async function fetchTokenLabel(mintAddress: string) {
   try {
+    const { PublicKey } = await import('@solana/web3.js')
     const mintPubkey = new PublicKey(mintAddress)
     const labelPDA = await getLabelPDA(mintPubkey)
     
-    const program = getProgram()
+    const program = await getProgram()
     const label = await program.account.label.fetch(labelPDA)
     
     return {
@@ -110,7 +118,7 @@ export async function fetchVaultInfo() {
   try {
     const vaultPDA = await getVaultPDA()
     
-    const program = getProgram()
+    const program = await getProgram()
     const vault = await program.account.vault.fetch(vaultPDA)
     
     return {
@@ -129,7 +137,7 @@ export async function fetchVaultInfo() {
 // 최근 리사이클 데이터 조회
 export async function fetchRecentRecycles(limit: number = 10) {
   try {
-    const program = getProgram()
+    const program = await getProgram()
     
     const recycleAccounts = await program.account.recycleData.all()
     const sortedRecycles = recycleAccounts
@@ -164,9 +172,10 @@ export async function createRecycleTokenTransaction(
   tokens: { mint: string, amount: string }[]
 ) {
   try {
+    const { PublicKey } = await import('@solana/web3.js')
     const { BN } = await import('@coral-xyz/anchor')
     const userPublicKey = new PublicKey(userPublicKeyStr)
-    const program = getProgram()
+    const program = await getProgram()
     
     const tx = new Transaction()
     
@@ -267,6 +276,7 @@ export async function createRecycleTokenTransaction(
 // 사용자 토큰 계정 조회
 export async function getUserTokenAccounts(userAddress: string) {
   try {
+    const { PublicKey } = await import('@solana/web3.js')
     const userPubkey = new PublicKey(userAddress)
     const tokenAccounts = await connection.getParsedTokenAccountsByOwner(
       userPubkey,
@@ -299,7 +309,8 @@ export async function getUserTokenAccounts(userAddress: string) {
 // 특정 사용자의 리사이클 히스토리 조회
 export async function getUserRecycleHistory(userAddress: string) {
   try {
-    const program = getProgram()
+    const { PublicKey } = await import('@solana/web3.js')
+    const program = await getProgram()
     const userPubkey = new PublicKey(userAddress)
     
     const recycleAccounts = await program.account.recycleData.all([
@@ -352,7 +363,7 @@ function getTokenDescription(typeIndex: number): TokenDescription {
 
 export async function getAllLabels() {
   try {
-    const program = getProgram()
+    const program = await getProgram()
     const allLabels = await program.account.label.all()
     
     // 라벨 정보를 mint 주소를 키로 하는 맵으로 변환
@@ -377,7 +388,7 @@ export async function getAllLabels() {
           }
         }
 
-        // 라벨이 없는 경우 주소 기반으로 타�� 결정
+        // 라벨이 없는 경우 주소 기반으로 타입 결정
         const typeIndex = getAddressType(mintAddress)
         return {
           description: getTokenDescription(typeIndex),
