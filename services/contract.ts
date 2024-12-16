@@ -8,7 +8,6 @@ import { getAssociatedTokenAddress } from '@solana/spl-token'
 import { Wallet } from '@coral-xyz/anchor'
 import { TokenDescription } from '@/types/token'
 import { PROGRAM_ID, RPC_ENDPOINT, SEEDS } from '@/config'
-import anchor from '@coral-xyz/anchor'
 
 const connection = new Connection(RPC_ENDPOINT)
 
@@ -171,7 +170,7 @@ export async function createRecycleTokenTransaction(
     const tx = new Transaction()
     
     for (const { mint, amount } of tokens) {
-      const timestamp = new BN(Date.now().toString())
+      const timestamp = new BN(Date.now().toString(), 10)
       const mintPubkey = new PublicKey(mint)
       
       // PDA 계정들 생성
@@ -236,7 +235,7 @@ export async function createRecycleTokenTransaction(
       // Create instruction with BigInt
       const instruction = await program.methods
         .recycleToken(
-          new BN(amount.toString()),
+          new BN(amount.toString(), 10),
           timestamp
         )
         .accounts(accounts)
@@ -377,7 +376,7 @@ export async function getAllLabels() {
           }
         }
 
-        // 라벨이 없는 경우 주소 기반으로 타입 결정
+        // 라벨이 없는 경우 주소 기반으로 타�� 결정
         const typeIndex = getAddressType(mintAddress)
         return {
           description: getTokenDescription(typeIndex),

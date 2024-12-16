@@ -2,8 +2,6 @@
 import { useState, useEffect, useRef } from 'react'
 import { fetchRecentRecycles } from '@/services/contract'
 import { fetchToken } from '@/services/token'
-import { PublicKey } from '@solana/web3.js'
-import { BN } from '@coral-xyz/anchor'
 
 interface RecentRecycleWithMetadata {
   amount: number
@@ -44,12 +42,11 @@ export function useRecentRecycles() {
         }
         console.log(`token: ${JSON.stringify(token)}`)
 
-        // decimal을 고려하여 amount 계산
-        const rawAmount = new BN(latestRecycle.tokenAmount)
-        const decimals = new BN(token.decimals || 0)
-        const divisor = new BN(10).pow(decimals)
-        const amount = rawAmount.div(divisor).toNumber() + 
-          (rawAmount.mod(divisor).toNumber() / Math.pow(10, decimals.toNumber()))
+        const rawAmount = BigInt(latestRecycle.tokenAmount)
+        const decimals = BigInt(token.decimals || 0)
+        const divisor = BigInt(10) ** decimals
+        const amount = Number(rawAmount / divisor) + 
+          Number(rawAmount % divisor) / Number(divisor)
 
         const newRecycle = {
           amount,

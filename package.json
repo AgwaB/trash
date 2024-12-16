@@ -33,8 +33,6 @@
     "tailwind-merge": "^2.5.5",
     "tailwindcss-animate": "^1.0.7",
     "ts-node": "^10.9.2",
-    "@types/bn.js": "5.1.1",
-    "bn.js": "5.2.1",
     "stream-browserify": "^3.0.0",
     "crypto-browserify": "^3.12.0",
     "buffer": "^6.0.3"
