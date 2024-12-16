@@ -1,4 +1,5 @@
 import type { NextConfig } from "next";
+import webpack from 'webpack';
 
 const nextConfig: NextConfig = {
   webpack: (config, { isServer }) => {
@@ -13,13 +14,12 @@ const nextConfig: NextConfig = {
         os: false
       };
 
-      config.plugins = [
-        ...config.plugins,
-        new config.webpack.ProvidePlugin({
+      config.plugins.push(
+        new webpack.ProvidePlugin({
           Buffer: ['buffer', 'Buffer'],
           process: 'process/browser'
         })
-      ];
+      );
     }
     return config;
   },
