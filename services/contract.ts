@@ -1,6 +1,6 @@
 "use server"
 import { Connection, PublicKey, SystemProgram, Transaction } from '@solana/web3.js'
-import { Program, AnchorProvider, BN } from '@coral-xyz/anchor'
+import { Program, AnchorProvider } from '@coral-xyz/anchor'
 import { Trash } from './idl/trash'
 import IDL from './idl/trash.json'
 import { TOKEN_PROGRAM_ID } from '@solana/spl-token'
@@ -164,6 +164,7 @@ export async function createRecycleTokenTransaction(
   tokens: { mint: string, amount: string }[]
 ) {
   try {
+    const { BN } = await import('@coral-xyz/anchor')
     const userPublicKey = new PublicKey(userPublicKeyStr)
     const program = getProgram()
     
