@@ -18,7 +18,7 @@ export function useRecentRecycles() {
   const [isLoading, setIsLoading] = useState(true)
   const [shouldHighlight, setShouldHighlight] = useState(false)
   const prevRecycleRef = useRef<RecentRecycleWithMetadata | null>(null)
-  const timerRef = useRef<NodeJS.Timeout>()
+  const timerRef = useRef<NodeJS.Timeout | null>(null)
 
   const setHighlight = (value: boolean) => {
     setShouldHighlight(value)
