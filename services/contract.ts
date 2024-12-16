@@ -1,6 +1,6 @@
 "use server"
 import { Connection, PublicKey, SystemProgram, Transaction } from '@solana/web3.js'
-import { Program, AnchorProvider, BN } from '@coral-xyz/anchor'
+import { Program, AnchorProvider } from '@coral-xyz/anchor'
 import { Trash } from './idl/trash'
 import IDL from './idl/trash.json'
 import { TOKEN_PROGRAM_ID } from '@solana/spl-token'
@@ -9,6 +9,7 @@ import { Wallet } from '@coral-xyz/anchor'
 import { TokenDescription } from '@/types/token'
 import { PROGRAM_ID, RPC_ENDPOINT, SEEDS } from '@/config'
 import anchor from '@coral-xyz/anchor'
+import BN from 'bn.js'
 
 const connection = new Connection(RPC_ENDPOINT)
 
