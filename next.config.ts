@@ -12,14 +12,12 @@ const nextConfig: NextConfig = {
         fs: false,
         path: false,
         os: false,
-        BN: require.resolve('bn.js')  // BN.js를 명시적으로 지정
       };
 
       config.plugins.push(
         new webpack.ProvidePlugin({
           Buffer: ['buffer', 'Buffer'],
-          process: 'process/browser',
-          BN: ['bn.js', 'BN']  // BN을 전역으로 제공
+          process: 'process/browser'
         })
       );
     }
