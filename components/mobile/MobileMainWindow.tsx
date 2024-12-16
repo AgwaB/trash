@@ -1,5 +1,5 @@
 "use client"
-import React, { useState, useEffect } from 'react'
+import React, { useState } from 'react'
 import Image from 'next/image'
 import { useWallet } from '@solana/wallet-adapter-react'
 import WalletModal from '../shared/WalletModal'
@@ -7,25 +7,32 @@ import HowItWorksModal from '../shared/HowItWorksModal'
 import LoadingView from '../shared/LoadingView'
 import TokenList from '../shared/TokenList'
 import EmptyView from '../shared/EmptyView'
-import { usePoints } from '@/contexts/PointsContext'
-import { Win98Frame, Win98TitleBar, Win98InnerFrame, Win98ContentArea, Win98Footer, Win98FooterContent } from '../shared/ui/win98'
-import Toast from '../shared/Toast'
 import { useTokens } from '@/hooks/useTokens'
+import { useVaultInfo } from '@/hooks/useVaultInfo'
+import Toast from '../shared/Toast'
+import { createRecycleTokenTransaction } from '@/services/contract'
+import { Connection } from '@solana/web3.js'
+import { RPC_ENDPOINT } from '@/config'
+import { Transaction } from '@solana/web3.js'
+import { BN } from '@coral-xyz/anchor'
+
+const connection = new Connection(RPC_ENDPOINT)
 
 export default function MobileMainWindow() {
-  const { connected, publicKey } = useWallet()
-  const { points } = usePoints()
+  const { connected, publicKey, signTransaction } = useWallet()
   const [isWalletModalOpen, setIsWalletModalOpen] = useState(false)
   const [isHowItWorksOpen, setIsHowItWorksOpen] = useState(false)
   const [isPressed, setIsPressed] = useState(false)
-  const [isHovered, setIsHovered] = useState(false)
-  const [isRecycling, setIsRecycling] = useState(false)
   const [selectedTokens, setSelectedTokens] = useState<string[]>([])
+  const [calculatedPoints, setCalculatedPoints] = useState(0)
   const [toast, setToast] = useState<{
     message: string;
     type: 'success' | 'error';
   } | null>(null)
   const { tokens, isLoading, mutate } = useTokens(publicKey?.toString())
+  const { vaultInfo, isLoading: isVaultLoading } = useVaultInfo()
+
+  const totalVolume = Number(vaultInfo.totalSolDeposited) / 1e9
 
   const handleTokenSelect = (tokenId: string) => {
     setSelectedTokens(prev => 
@@ -35,20 +42,8 @@ export default function MobileMainWindow() {
     )
   }
 
-  const getButtonImage = () => {
-    if (!connected) {
-      if (isPressed) return '/images/recycle.png'
-      if (isHovered) return '/images/recycle.png'
-      return '/images/recycle.png'
-    } else {
-      if (isPressed) return '/images/mobile-recycle.png'
-      if (isHovered) return '/images/mobile-recycle.png'
-      return '/images/mobile-recycle.png'
-    }
-  }
-
   const getButtonOpacity = () => {
-    if (connected && (!tokens || tokens.length === 0 || selectedTokens.length === 0)) {
+    if (connected && (tokens?.length === 0 || selectedTokens.length === 0)) {
       return 'opacity-50'
     }
     return ''
@@ -60,31 +55,65 @@ export default function MobileMainWindow() {
   }
 
   const handleRecycleClick = async () => {
-    if (!connected || selectedTokens.length === 0) return
+    if (!connected || selectedTokens.length === 0 || !publicKey || !signTransaction) return
 
     try {
-      setIsRecycling(true)
-      // todo: recycleTokens 구현
-      setSelectedTokens([])
+      // 선택된 토큰들 가져오기
+      const selectedTokenData = tokens?.filter(token => selectedTokens.includes(token.id))
+      if (!selectedTokenData) return
+
+      // 리사이클할 토큰 목록 생성
+      const recycleList = selectedTokenData
+        .map(token => {
+          const amount = new BN(token.amount)
+          const decimals = new BN(token.decimals || 0)
+          const multiplier = new BN(10).pow(decimals)
+          const rawAmount = amount.mul(multiplier)
+          
+          return {
+            mint: token.mint,
+            amount: rawAmount.toNumber()
+          }
+        })
+        .filter(token => token.amount > 0)
+
+      if (recycleList.length === 0) return
+
+      // 트랜잭션 생성
+      const result = await createRecycleTokenTransaction(publicKey.toString(), recycleList)
+      if (!result.success || !result.serializedTransaction) {
+        throw new Error(result.error || "트랜잭션 생성에 실패했습니다")
+      }
+
+      // base64 문자열을 Transaction으로 변환
+      const tx = Transaction.from(Buffer.from(result.serializedTransaction, 'base64'))
       
+      // 트랜잭션 서명
+      const signedTx = await signTransaction(tx)
+      
+      // 트랜잭션 전송
+      const signature = await connection.sendRawTransaction(signedTx.serialize())
+      await connection.confirmTransaction(signature)
+
+      setSelectedTokens([])
       setToast({
-        message: "Recycle completed",
+        message: "리사이클이 완료되었습니다",
         type: 'success'
       })
-
+      
+      // 토큰 목록 수동 갱신
       await mutate()
-    } catch {
+    } catch (error) {
+      console.error('토큰 리사이클 중 오류:', error)
       setToast({
-        message: "Recycle failed",
+        message: error instanceof Error ? error.message : "리사이클에 실패했습니다",
         type: 'error'
       })
-    } finally {
-      setIsRecycling(false)
     }
   }
 
   const renderContent = () => {
-    if (!connected || !publicKey) {
+    if (!connected) {
       return (
         <div className="flex flex-col items-center justify-center h-full">
           <div className="flex-1 flex items-center justify-center w-full">
@@ -112,6 +141,7 @@ export default function MobileMainWindow() {
         tokens={tokens}
         selectedTokens={selectedTokens}
         onSelectToken={handleTokenSelect}
+        onPointsChange={setCalculatedPoints}
         isMobile={true}
       />
     )
@@ -119,11 +149,17 @@ export default function MobileMainWindow() {
 
   return (
     <>
-      <Win98Frame className="h-full w-full flex flex-col">
-        <Win98TitleBar className="h-[36px] bg-[#503D9E] text-white shrink-0">
-          <div className="flex justify-between items-center w-full">
-            <div className="text-base leading-8 font-[700] pl-5">
-              Volume - {points} SOL
+      <div className="flex flex-col h-full">
+        {/* Header */}
+        <div className="h-[36px] bg-[#503D9E] text-white flex-shrink-0">
+          <div className="flex justify-between items-center w-full h-full px-4">
+            <div className="flex items-center gap-2">
+              <span className="font-ms-sans text-[16px] leading-[34px] text-[#0A0A0A]">
+                Volume
+              </span>
+              <span className="font-ms-sans text-[16px] leading-[34px] text-[#0A0A0A]">
+                {isVaultLoading ? "Loading..." : `${totalVolume.toFixed(4)} SOL`}
+              </span>
             </div>
             <div className="flex items-center">
               <div 
@@ -154,35 +190,26 @@ export default function MobileMainWindow() {
               </div>
             </div>
           </div>
-        </Win98TitleBar>
+        </div>
 
-        <Win98InnerFrame className="flex-1 min-h-0 flex flex-col">
-          <Win98ContentArea className="
-            mx-[2px] 
-            my-[6px] 
-            flex-1          /* h-[400px] 대신 flex-1 사용 */
-            min-h-0         /* flex-1이 작동하도록 min-h-0 추가 */
-            bg-white 
-            border-[#0A0A0A] 
-            border-[2px] 
-            flex 
-            flex-col
-            overflow-auto
-          ">
+        {/* Content */}
+        <div className="flex-1 min-h-0 flex flex-col">
+          <div className="flex-1 min-h-0">
             {renderContent()}
-          </Win98ContentArea>
-        </Win98InnerFrame>
+          </div>
+        </div>
 
-        <Win98Footer className="shrink-0">
+        {/* Footer */}
+        <div className="flex-shrink-0">
           <div className="h-[2px] border-t border-t-[#CCC0F8] border-b border-b-[#776EBA]" />
-          <Win98FooterContent>
+          <div className="p-4 flex flex-col items-center">
             {connected && (
               <>
                 <div className="font-ms-sans text-[14px] text-[#3C3987]">
                   Recycle for Points:
                 </div>
                 <div className="font-ms-sans text-[14px] text-black mb-2">
-                  {points}
+                  {calculatedPoints.toLocaleString()}
                 </div>
               </>
             )}
@@ -196,40 +223,25 @@ export default function MobileMainWindow() {
               }}
               onMouseDown={() => setIsPressed(true)}
               onMouseUp={() => setIsPressed(false)}
-              onMouseLeave={() => {
-                setIsPressed(false)
-                setIsHovered(false)
-              }}
-              onMouseEnter={() => setIsHovered(true)}
-              className="relative w-[208px] h-[38px] flex items-center justify-center"
-              disabled={connected && (!tokens || tokens.length === 0 || selectedTokens.length === 0)}
+              className={`w-[208px] h-[38px] bg-[#503D9E] text-white font-ms-sans text-[14px] font-[700] 
+                        ${isPressed ? 'bg-[#3C2D7C]' : ''} 
+                        ${getButtonOpacity()}`}
+              disabled={connected && (tokens?.length === 0 || selectedTokens.length === 0)}
             >
-              <Image
-                src={getButtonImage()}
-                alt="Action Button"
-                width={208}
-                height={38}
-                className={`object-contain ${getButtonOpacity()}`}
-              />
-              <span className="absolute inset-0 flex items-center justify-center 
-                            font-ms-sans text-[14px] text-white font-[700]">
-                {getButtonText()}
-              </span>
+              {getButtonText()}
             </button>
-          </Win98FooterContent>
-        </Win98Footer>
-      </Win98Frame>
+          </div>
+        </div>
+      </div>
 
       <WalletModal 
         isOpen={isWalletModalOpen}
         onClose={() => setIsWalletModalOpen(false)}
-        isMobile={true}
       />
 
       <HowItWorksModal
         isOpen={isHowItWorksOpen}
         onClose={() => setIsHowItWorksOpen(false)}
-        isMobile={true}
       />
 
       {toast && (
@@ -237,7 +249,6 @@ export default function MobileMainWindow() {
           message={toast.message}
           type={toast.type}
           onClose={() => setToast(null)}
-          isMobile={true}
         />
       )}
     </>

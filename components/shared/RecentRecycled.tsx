@@ -3,9 +3,11 @@ import React from 'react'
 import Image from 'next/image'
 import { useRecentRecycles } from '@/hooks/useRecentRecycles'
 import { getTokenFallbackImage } from '@/constants/tokenImages'
+import styles from './RecentRecycled.module.css'
+import { formatWithCommas } from '@/utils/formatNumber'
 
 export default function RecentRecycled() {
-  const { recentRecycle, isLoading } = useRecentRecycles()
+  const { recentRecycle, isLoading, shouldHighlight } = useRecentRecycles()
 
   if (isLoading) {
     return (
@@ -32,7 +34,6 @@ export default function RecentRecycled() {
     if (predefinedImage) {
       return predefinedImage
     }
-
     return recentRecycle.imageUri || "/images/default-token.png"
   }
 
@@ -47,8 +48,8 @@ export default function RecentRecycled() {
           unoptimized
         />
       </div>
-      <span className="font-ms-sans text-[14px] text-[#FFBF57]">
-        SSCAJS Recycled {recentRecycle.amount.toLocaleString()} ${recentRecycle.symbol}
+      <span className={`font-ms-sans text-[14px] text-[#FFBF57] ${shouldHighlight ? styles.highlight : ''}`}>
+        {recentRecycle.name} Recycled {formatWithCommas(recentRecycle.amount)} ${recentRecycle.symbol}
       </span>
     </div>
   )

@@ -17,6 +17,8 @@ export interface Token {
   amount: string
   type: TokenType
   solValue?: string
+  multiplier?: string
+  decimals: number
 }
 
 // Token Whitelist Description

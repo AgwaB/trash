@@ -6,11 +6,8 @@ import { Token, TokenType } from "@/types/token"
 import { unstable_cache } from 'next/cache'
 import { getCachedPrices, updateCachedPrice, getExpiredTokenIds, getAllCachedPrices } from './cache'
 import { Decimal } from 'decimal.js'
-
-const TOKEN_PROGRAM_ID = new PublicKey("TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA")
-const TOKEN_2022_PROGRAM_ID = new PublicKey("TokenzQdBNbLqP5VEhdkAS6EPFLC1PHnBqCXEpPxuEb")
-const RPC_ENDPOINT = "https://wispy-cold-gadget.solana-mainnet.quiknode.pro/81a007c42698b140c9c618ca05162bcf56f34e8d"
-const WSOL_MINT = "So11111111111111111111111111111111111111112"
+import { getAllLabels } from './contract'
+import { TOKEN_PROGRAM_ID, TOKEN_2022_PROGRAM_ID, RPC_ENDPOINT, WSOL_MINT } from '@/config'
 
 // Token Whitelist Interface
 interface WhitelistedToken {
@@ -106,6 +103,10 @@ async function getSftTokens(ownerAddress: string) {
       metadataList
         .filter((item): item is any => item !== null)
         .map(async item => {
+          const tokenAccount = tokenAccounts.value.find(
+            ta => ta.account.data.parsed.info.mint === item.mintAddress.toString()
+          )
+
           const token: Token = {
             id: item.mintAddress.toString(),
             mint: item.address.toString(),
@@ -114,9 +115,8 @@ async function getSftTokens(ownerAddress: string) {
             uri: item.uri,
             description: item.json?.description || "",
             imageUri: undefined,
-            amount: tokenAccounts.value.find(
-              ta => ta.account.data.parsed.info.mint === item.mintAddress.toString()
-            )?.account.data.parsed.info.tokenAmount.uiAmount || 0,
+            amount: tokenAccount?.account.data.parsed.info.tokenAmount.uiAmount || 0,
+            decimals: tokenAccount?.account.data.parsed.info.tokenAmount.decimals || 0,
             type: TokenType.UNKNOWN
           }
 
@@ -156,6 +156,7 @@ async function getToken2022s(ownerAddress: string) {
           description: "",
           imageUri: undefined,
           amount: account.account.data.parsed.info.tokenAmount.uiAmount,
+          decimals: account.account.data.parsed.info.tokenAmount.decimals || 0,
           type: TokenType.UNKNOWN
         }
 
@@ -193,7 +194,7 @@ async function fetchTokenPrices(tokenIds: string[]): Promise<Record<string, Deci
       )
     }
 
-    // 최대 100개씩 나누어 요청
+    // 최대 100개씩 나어 요청
     const chunks = []
     for (let i = 0; i < tokensToFetch.length; i += 100) {
       chunks.push(tokensToFetch.slice(i, i + 100))
@@ -289,13 +290,21 @@ export async function fetchTokens(ownerAddress: string): Promise<Token[]> {
         // 토큰 가격 정보 가져오기
         const tokenIds = tokens.map(token => token.id)
         const prices = await getTokenPrices(tokenIds)
+
+        // 토큰 라벨 정보 가져오기
+        const labelSystem = await getAllLabels()
         
-        // 토큰에 SOL 가치 추가
-        return tokens.map(token => ({
-          ...token,
-          amount: token.amount.toString(),
-          solValue: prices[token.id]?.toString() || '0'
-        }));
+        // 토큰에 SOL 가치와 라벨 정보 추가
+        return tokens.map(token => {
+          const label = labelSystem.getTokenLabel(token.mint)
+          return {
+            ...token,
+            amount: token.amount.toString(),
+            solValue: prices[token.id]?.toString() || '0',
+            description: label.description,
+            multiplier: label.multiplier
+          }
+        });
       } catch (error) {
         console.error('Error in fetchTokens:', error)
         throw error
@@ -331,18 +340,23 @@ export async function fetchRecentRecycled(): Promise<RecentRecycled> {
 }
 
 // 개별 토큰 조회 함수
-export async function fetchToken(mintAddress: string): Promise<Token | null> {
+export async function fetchToken(mintAddress: string): Promise<Token | undefined> {
   try {
     const connection = new Connection(RPC_ENDPOINT)
     const metaplex = new Metaplex(connection)
     const mintPubkey = new PublicKey(mintAddress)
 
-    const metadata = await metaplex.nfts().findByMint({ mintAddress: mintPubkey })
+    let metadata: any = undefined
+    try {
+      metadata = await metaplex.nfts().findByMint({ mintAddress: mintPubkey })
+    } catch (error) {
+      return undefined
+    } 
     
-    if (!metadata) return null
+    if (!metadata) return undefined
 
     const token: Token = {
-      id: metadata.mintAddress.toString(),
+      id: metadata.address.toString(),
       mint: metadata.address.toString(),
       name: metadata.name,
       symbol: metadata.symbol,
@@ -350,6 +364,7 @@ export async function fetchToken(mintAddress: string): Promise<Token | null> {
       description: metadata.json?.description || "",
       imageUri: undefined,
       amount: "0", // amount는 여기서는 필요 없음
+      decimals: metadata.mint.decimals || 0,
       type: TokenType.UNKNOWN
     }
 
@@ -357,6 +372,6 @@ export async function fetchToken(mintAddress: string): Promise<Token | null> {
     return token
   } catch (error) {
     console.error('Error fetching token:', error)
-    return null
+    return undefined
   }
 }

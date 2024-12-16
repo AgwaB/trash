@@ -12,15 +12,23 @@ import { Win98Frame, Win98TitleBar, Win98InnerFrame, Win98ContentArea, Win98Foot
 import Toast from '../shared/Toast'
 import { useTokens } from '@/hooks/useTokens'
 import { useVaultInfo } from '@/hooks/useVaultInfo'
+import { createRecycleTokenTransaction } from '@/services/contract'
+import { Connection } from '@solana/web3.js'
+import { RPC_ENDPOINT } from '@/config'
+import { Transaction } from '@solana/web3.js'
+import { BN } from '@coral-xyz/anchor'
+
+const connection = new Connection(RPC_ENDPOINT)
 
 export default function MainWindow() {
-  const { connected, publicKey } = useWallet()
+  const { connected, publicKey, wallet, signTransaction } = useWallet()
   const { points } = usePoints()
   const [isWalletModalOpen, setIsWalletModalOpen] = useState(false)
   const [isHowItWorksOpen, setIsHowItWorksOpen] = useState(false)
   const [isPressed, setIsPressed] = useState(false)
   const [isHovered, setIsHovered] = useState(false)
   const [selectedTokens, setSelectedTokens] = useState<string[]>([])
+  const [calculatedPoints, setCalculatedPoints] = useState(0)
   const [toast, setToast] = useState<{
     message: string;
     type: 'success' | 'error';
@@ -57,21 +65,58 @@ export default function MainWindow() {
   }
 
   const handleRecycleClick = async () => {
-    if (!connected || selectedTokens.length === 0) return
+    if (!connected || selectedTokens.length === 0 || !publicKey || !signTransaction) return
 
     try {
-      // TODO: recycleTokens 구현
+      // 선택된 토큰들 가져오기
+      const selectedTokenData = tokens?.filter(token => selectedTokens.includes(token.id))
+      if (!selectedTokenData) return
+
+      // 리사이클할 토큰 목록 생성
+      const recycleList = selectedTokenData
+        .filter(token => Number(token.amount) > 0)
+        .map(token => {
+          const amount = new BN(token.amount)
+          const decimals = new BN(token.decimals || 0)
+          const multiplier = new BN(10).pow(decimals)
+          const rawAmount = amount.mul(multiplier)
+          
+          return {
+            mint: token.id,
+            amount: rawAmount.toString()
+          }
+        })
+
+      if (recycleList.length === 0) return
+
+      // 트랜잭션 생성
+      const result = await createRecycleTokenTransaction(publicKey.toString(), recycleList)
+      if (!result.success || !result.serializedTransaction) {
+        throw new Error(result.error || "트랜잭션 생성에 실패했습니다")
+      }
+
+      // base64 문자열을 Transaction으로 변환
+      const tx = Transaction.from(Buffer.from(result.serializedTransaction, 'base64'))
+      
+      // 트랜잭션 서명
+      const signedTx = await signTransaction(tx)
+      
+      // 트랜잭션 전송
+      const signature = await connection.sendRawTransaction(signedTx.serialize())
+      await connection.confirmTransaction(signature)
+
       setSelectedTokens([])
       setToast({
-        message: "Recycle completed",
+        message: "리사이클이 완료되었습니다",
         type: 'success'
       })
       
       // 토큰 목록 수동 갱신
       await mutate()
-    } catch {
+    } catch (error) {
+      console.error('토큰 리사이클 중 오류:', error)
       setToast({
-        message: "Recycle failed",
+        message: error instanceof Error ? error.message : "리사이클에 실패했습니다",
         type: 'error'
       })
     }
@@ -106,6 +151,7 @@ export default function MainWindow() {
         tokens={tokens}
         selectedTokens={selectedTokens}
         onSelectToken={handleTokenSelect}
+        onPointsChange={setCalculatedPoints}
       />
     )
   }
@@ -114,7 +160,7 @@ export default function MainWindow() {
     <>
       <Win98Frame className="
         w-[450px] h-[600px]                    /* 기본 크기 */
-        md:w-[calc(100vw-200px)]              /* 중간 화면에서는 화면 너비에서 여백 제외 */
+        md:w-[calc(100vw-200px)]              /* 중간 화면에서는 화면 비에서 여백 제외 */
         md:max-w-[450px]                      /* 최대 너비는 450px로 제한 */
         md:h-[calc(100vh-120px)]              /* 화면 높이에서 navbar, footer 높이 제외 */
         md:max-h-[600px]                      /* 최대 높이는 600px로 제한 */
@@ -177,7 +223,7 @@ export default function MainWindow() {
                   Recycle for Points:
                 </div>
                 <div className="font-ms-sans text-[14px] text-black mb-2">
-                  {points}
+                  {calculatedPoints.toLocaleString()}
                 </div>
               </>
             )}

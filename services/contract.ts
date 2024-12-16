@@ -1,20 +1,14 @@
 "use server"
-import { Connection, PublicKey, SystemProgram } from '@solana/web3.js'
+import { Connection, PublicKey, SystemProgram, Transaction } from '@solana/web3.js'
 import { Program, AnchorProvider, BN } from '@coral-xyz/anchor'
 import { Trash } from './idl/trash'
 import IDL from './idl/trash.json'
 import { TOKEN_PROGRAM_ID } from '@solana/spl-token'
 import { getAssociatedTokenAddress } from '@solana/spl-token'
 import { Wallet } from '@coral-xyz/anchor'
-
-const PROGRAM_ID = new PublicKey('969z78CgL3ssgVBA9KSq6uQhojiMit6dewMwRoH7FPz4')
-const RPC_ENDPOINT = 'https://api.devnet.solana.com' // process.env.NEXT_PUBLIC_RPC_ENDPOINT! // TODO: 환경변수 설정
-
-const ADMIN_SEED = 'ADMIN'
-const VAULT_SEED = 'VAULT'
-const LABEL_SEED = 'LABEL'
-const USER_STATS_SEED = 'USER_STATS'
-const RECYCLE_DATA_SEED = 'RECYCLE_DATA'
+import { TokenDescription } from '@/types/token'
+import { PROGRAM_ID, RPC_ENDPOINT, SEEDS } from '@/config'
+import anchor from '@coral-xyz/anchor'
 
 const connection = new Connection(RPC_ENDPOINT)
 
@@ -30,7 +24,7 @@ function getProgram(wallet?: Wallet) {
 // PDA 주소 가져오기 함수들
 export async function getAdminPDA(): Promise<PublicKey> {
   const [pda] = await PublicKey.findProgramAddressSync(
-    [Buffer.from(ADMIN_SEED)],
+    [Buffer.from(SEEDS.ADMIN)],
     PROGRAM_ID
   )
   return pda
@@ -38,7 +32,7 @@ export async function getAdminPDA(): Promise<PublicKey> {
 
 export async function getVaultPDA(): Promise<PublicKey> {
   const [pda] = await PublicKey.findProgramAddressSync(
-    [Buffer.from(VAULT_SEED)],
+    [Buffer.from(SEEDS.VAULT)],
     PROGRAM_ID
   )
   return pda
@@ -46,7 +40,7 @@ export async function getVaultPDA(): Promise<PublicKey> {
 
 export async function getLabelPDA(mint: PublicKey): Promise<PublicKey> {
   const [pda] = await PublicKey.findProgramAddressSync(
-    [Buffer.from(LABEL_SEED), mint.toBuffer()],
+    [Buffer.from(SEEDS.LABEL), mint.toBuffer()],
     PROGRAM_ID
   )
   return pda
@@ -54,7 +48,7 @@ export async function getLabelPDA(mint: PublicKey): Promise<PublicKey> {
 
 export async function getUserStatsPDA(user: PublicKey): Promise<PublicKey> {
   const [pda] = await PublicKey.findProgramAddressSync(
-    [Buffer.from(USER_STATS_SEED), user.toBuffer()],
+    [Buffer.from(SEEDS.USER_STATS), user.toBuffer()],
     PROGRAM_ID
   )
   return pda
@@ -62,7 +56,7 @@ export async function getUserStatsPDA(user: PublicKey): Promise<PublicKey> {
 
 export async function getRecycleDataPDA(user: PublicKey, mint: PublicKey): Promise<PublicKey> {
   const [pda] = await PublicKey.findProgramAddressSync(
-    [Buffer.from(RECYCLE_DATA_SEED), user.toBuffer(), mint.toBuffer()],
+    [Buffer.from(SEEDS.RECYCLE_DATA), user.toBuffer(), mint.toBuffer()],
     PROGRAM_ID
   )
   return pda
@@ -165,84 +159,106 @@ export async function fetchRecentRecycles(limit: number = 10) {
   }
 }
 
-// 토큰 리사이클 함수
-export async function recycleToken(
-  wallet: Wallet,
-  mintAddress: string, 
-  amount: number
+// 토큰 리사이클 트랜잭션 생성 함수
+export async function createRecycleTokenTransaction(
+  userPublicKeyStr: string,
+  tokens: { mint: string, amount: number }[]
 ) {
   try {
-    const mintPubkey = new PublicKey(mintAddress)
-    const program = getProgram(wallet)
+    const userPublicKey = new PublicKey(userPublicKeyStr)
+    const program = getProgram()
     
-    // PDA 계정들 생성
-    const [labelPDA] = PublicKey.findProgramAddressSync(
-      [Buffer.from(LABEL_SEED), mintPubkey.toBuffer()],
-      PROGRAM_ID
-    )
+    // Create transaction
+    const tx = new Transaction()
+    
+    // Add all instructions to the transaction
+    for (const { mint, amount } of tokens) {
+      const timestamp = new BN(Date.now())
+      const mintPubkey = new PublicKey(mint)
+      
+      // PDA 계정들 생성
+      const [vaultPDA] = PublicKey.findProgramAddressSync(
+        [Buffer.from(SEEDS.VAULT)],
+        PROGRAM_ID
+      )
 
-    const [vaultPDA] = PublicKey.findProgramAddressSync(
-      [Buffer.from(VAULT_SEED)],
-      PROGRAM_ID
-    )
+      const [userStatsPDA] = PublicKey.findProgramAddressSync(
+        [Buffer.from(SEEDS.USER_STATS), userPublicKey.toBuffer()],
+        PROGRAM_ID
+      )
 
-    const [userStatsPDA] = PublicKey.findProgramAddressSync(
-      [Buffer.from(USER_STATS_SEED), wallet.publicKey.toBuffer()],
-      PROGRAM_ID
-    )
+      const [recycleDataPDA] = PublicKey.findProgramAddressSync(
+        [
+          Buffer.from(SEEDS.RECYCLE_DATA),
+          userPublicKey.toBuffer(),
+          Buffer.from(timestamp.toArray('le', 8))
+        ],
+        PROGRAM_ID
+      )
 
-    // 사용자의 토큰 계정 주소
-    const userATA = await getAssociatedTokenAddress(
-      mintPubkey,
-      wallet.publicKey
-    )
+      // 사용자의 토큰 계정 주소
+      const userATA = await getAssociatedTokenAddress(
+        mintPubkey,
+        userPublicKey
+      )
 
-    // Vault의 토큰 계정 주소
-    const [treasuryTokenAccount] = PublicKey.findProgramAddressSync(
-      [Buffer.from("TREASURY"), mintPubkey.toBuffer()],
-      PROGRAM_ID
-    )
+      // Vault의 토큰 계정 주소
+      const [treasuryTokenAccount] = PublicKey.findProgramAddressSync(
+        [Buffer.from("TREASURY"), mintPubkey.toBuffer()],
+        PROGRAM_ID
+      )
 
-    let userStatsInfo
-    try {
-      userStatsInfo = await program.account.userStats.fetch(userStatsPDA)
-    } catch {
-      userStatsInfo = {
-        recycleCount: new BN(0)
-      }
-    }
-
-    const [recycleDataPDA] = PublicKey.findProgramAddressSync(
-      [
-        Buffer.from(RECYCLE_DATA_SEED),
-        wallet.publicKey.toBuffer(),
-        userStatsInfo.recycleCount.toArrayLike(Buffer, 'le', 8)
-      ],
-      PROGRAM_ID
-    )
-
-    const tx = await program.methods
-      .recycleToken(new BN(amount))
-      .accounts({
-        user: wallet.publicKey,
+      // 기본 accounts 객체 설정
+      const accounts: any = {
+        user: userPublicKey,
         userStats: userStatsPDA,
         mint: mintPubkey,
         userTokenAccount: userATA,
         vault: vaultPDA,
         vaultTokenAccount: treasuryTokenAccount,
-        label: labelPDA,
         recycleData: recycleDataPDA,
         tokenProgram: TOKEN_PROGRAM_ID,
-        systemProgram: SystemProgram.programId,
-      } as any)
-      .rpc()
+        systemProgram: SystemProgram.programId
+      }
 
+      const [labelPDA] = PublicKey.findProgramAddressSync(
+        [Buffer.from(SEEDS.LABEL), mintPubkey.toBuffer()],
+        PROGRAM_ID
+      )
+
+      try {
+        const labelInfo = await program.account.label.fetch(labelPDA)
+        if (labelInfo && labelInfo.name !== '') {
+          accounts.label = labelPDA
+        }
+      } catch (e) {
+        accounts.label = new PublicKey(PROGRAM_ID)
+      }
+
+      // Create instruction
+      const instruction = await program.methods
+        .recycleToken(
+          new BN(amount),
+          timestamp
+        )
+        .accounts(accounts)
+        .instruction()
+      
+      tx.add(instruction)
+    }
+    
+    // Get the latest blockhash
+    const latestBlockhash = await connection.getLatestBlockhash()
+    tx.recentBlockhash = latestBlockhash.blockhash
+    tx.feePayer = userPublicKey
+
+    // 트랜잭션을 직렬화하여 반환
     return {
       success: true,
-      signature: tx
+      serializedTransaction: tx.serialize({ requireAllSignatures: false }).toString('base64')
     }
   } catch (error) {
-    console.error('Error in recycleToken:', error)
+    console.error('Error in createRecycleTokenTransaction:', error)
     return {
       success: false,
       error: error instanceof Error ? error.message : String(error)
@@ -250,7 +266,7 @@ export async function recycleToken(
   }
 }
 
-// 사용자의 토큰 계정 조회
+// 사용자 토큰 계정 조회
 export async function getUserTokenAccounts(userAddress: string) {
   try {
     const userPubkey = new PublicKey(userAddress)
@@ -259,24 +275,26 @@ export async function getUserTokenAccounts(userAddress: string) {
       { programId: TOKEN_PROGRAM_ID }
     )
 
-    const tokenDetails = await Promise.all(
-      tokenAccounts.value.map(async (tokenAccount) => {
-        const mintAddress = tokenAccount.account.data.parsed.info.mint
-        const balance = tokenAccount.account.data.parsed.info.tokenAmount.uiAmount
-        const label = await fetchTokenLabel(mintAddress)
+    // 모든 라벨 정보 가져오기
+    const labelSystem = await getAllLabels()
 
-        return {
-          mint: mintAddress,
-          balance,
-          label
-        }
-      })
-    )
+    const tokenDetails = tokenAccounts.value.map((tokenAccount) => {
+      const mintAddress = tokenAccount.account.data.parsed.info.mint
+      const balance = tokenAccount.account.data.parsed.info.tokenAmount.uiAmount
+      const label = labelSystem.getTokenLabel(mintAddress)
+
+      return {
+        mint: mintAddress,
+        balance,
+        description: label.description,
+        multiplier: label.multiplier
+      }
+    })
 
     return tokenDetails
   } catch (error) {
     console.error('Error fetching user token accounts:', error)
-    return []  // 빈 배열 반환
+    return []
   }
 }
 
@@ -306,5 +324,76 @@ export async function getUserRecycleHistory(userAddress: string) {
   } catch (error) {
     console.error('Error fetching user recycle history:', error)
     return []
+  }
+} 
+
+function getAddressType(address: string, numTypes: number = 4): number {
+  let sum = 0;
+  for (const char of address) {
+    sum += char.charCodeAt(0);
+  }
+  
+  const typeIndex = sum % numTypes;
+  return typeIndex + 1;
+}
+
+function getTokenDescription(typeIndex: number): TokenDescription {
+  switch (typeIndex) {
+    case 1:
+      return TokenDescription.RUG
+    case 2:
+      return TokenDescription.TRASH
+    case 3:
+      return TokenDescription.POOP
+    case 4:
+      return TokenDescription.GARBAGE
+    default:
+      return TokenDescription.TRASH
+  }
+}
+
+export async function getAllLabels() {
+  try {
+    const program = getProgram()
+    const allLabels = await program.account.label.all()
+    
+    // 라벨 정보를 mint 주소를 키로 하는 맵으로 변환
+    const labelMap = new Map(
+      allLabels.map(label => [
+        label.account.mint.toString(),
+        {
+          name: label.account.name,
+          multiplier: label.account.multiplier.toString()
+        }
+      ])
+    )
+
+    return {
+      getTokenLabel: (mintAddress: string) => {
+        // 라벨이 있는 경우
+        const label = labelMap.get(mintAddress)
+        if (label) {
+          return {
+            description: label.name,
+            multiplier: label.multiplier
+          }
+        }
+
+        // 라벨이 없는 경우 주소 기반으로 타입 결정
+        const typeIndex = getAddressType(mintAddress)
+        return {
+          description: getTokenDescription(typeIndex),
+          multiplier: '1'
+        }
+      }
+    }
+  } catch (error) {
+    console.error('Error fetching all labels:', error)
+    return {
+      getTokenLabel: (mintAddress: string) => ({
+        description: getTokenDescription(getAddressType(mintAddress)),
+        multiplier: '1'
+      })
+    }
   }
 } 

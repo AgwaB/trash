@@ -5,7 +5,7 @@
  * IDL can be found at `target/idl/trash.json`.
  */
 export type Trash = {
-  "address": "6f4N9MXSj3cFvww5kxMtWR9Ch1a3kXijfzE2S3w9xYm2",
+  "address": "7eF63fM1QUC12W4UGCpJvLNd9qebQn9AkuaLYAgZu5ek",
   "metadata": {
     "name": "trash",
     "version": "0.1.0",
@@ -90,10 +90,7 @@ export type Trash = {
         {
           "name": "user",
           "writable": true,
-          "signer": true,
-          "relations": [
-            "userStats"
-          ]
+          "signer": true
         },
         {
           "name": "userStats",
@@ -174,7 +171,7 @@ export type Trash = {
         },
         {
           "name": "label",
-          "writable": true,
+          "optional": true,
           "pda": {
             "seeds": [
               {
@@ -221,9 +218,8 @@ export type Trash = {
                 "path": "user"
               },
               {
-                "kind": "account",
-                "path": "user_stats.recycle_count",
-                "account": "userStats"
+                "kind": "arg",
+                "path": "timestamp"
               }
             ]
           }
@@ -240,6 +236,10 @@ export type Trash = {
         {
           "name": "tokenAmount",
           "type": "u64"
+        },
+        {
+          "name": "timestamp",
+          "type": "i64"
         }
       ]
     },

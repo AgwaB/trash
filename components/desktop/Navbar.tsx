@@ -3,20 +3,13 @@ import React, { useState } from 'react'
 import Image from 'next/image'
 import { useWallet } from '@solana/wallet-adapter-react'
 import WalletModal from '../shared/WalletModal'
-import { usePoints } from '@/contexts/PointsContext'
 import WalletButton from './WalletButton'
-import { fetchUserStats } from '@/services/contract'
+import { useUserStats } from '@/hooks/useUserStats'
 
-interface NavbarProps {
-  userStats: {
-    totalPointsEarned: string;
-    // ... other stats
-  } | null
-}
-
-export default function Navbar({ userStats }: NavbarProps) {
-  const { } = useWallet()
+export default function Navbar() {
+  const { publicKey } = useWallet()
   const [isWalletModalOpen, setIsWalletModalOpen] = useState(false)
+  const userStats = useUserStats(publicKey?.toString())
   const points = userStats ? Number(userStats.totalPointsEarned) : 0
 
   return (
@@ -59,7 +52,7 @@ export default function Navbar({ userStats }: NavbarProps) {
                 className="w-[35px] h-[35px] relative"
               >
                 <Image
-                  src="/icons/wallet-mobile.png"
+                  src="/images/mobile-wallet.png"
                   alt="Wallet"
                   fill
                   className="object-contain"
@@ -67,7 +60,6 @@ export default function Navbar({ userStats }: NavbarProps) {
               </button>
             </div>
             <div className="hidden md:block">
-                {/* // TODO */}
               <WalletButton onClick={() => setIsWalletModalOpen(true)} />
             </div>
           </div>
