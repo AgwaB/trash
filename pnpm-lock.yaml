@@ -41,12 +41,24 @@ dependencies:
   '@solana/web3.js':
     specifier: ^1.98.0
     version: 1.98.0
+  '@types/bn.js':
+    specifier: 5.1.1
+    version: 5.1.1
+  bn.js:
+    specifier: 5.2.1
+    version: 5.2.1
+  buffer:
+    specifier: ^6.0.3
+    version: 6.0.3
   class-variance-authority:
     specifier: ^0.7.1
     version: 0.7.1
   clsx:
     specifier: ^2.1.1
     version: 2.1.1
+  crypto-browserify:
+    specifier: ^3.12.0
+    version: 3.12.1
   decimal.js:
     specifier: ^10.4.3
     version: 10.4.3
@@ -65,6 +77,9 @@ dependencies:
   react-dom:
     specifier: 19.0.0
     version: 19.0.0(react@19.0.0)
+  stream-browserify:
+    specifier: ^3.0.0
+    version: 3.0.0
   swr:
     specifier: ^2.2.5
     version: 2.2.5(react@19.0.0)
@@ -6290,6 +6305,12 @@ packages:
     resolution: {integrity: sha512-r1bzfrm0tomOI8g1SzvCaQHo6Lcv6zu0EA+W2kHrt8dyrHQxGzBBL4kdkzIS+jBMV+EYcMAEAqXqYaLJq5rOZg==}
     dependencies:
       '@babel/types': 7.26.3
+    dev: false
+
+  /@types/bn.js@5.1.1:
+    resolution: {integrity: sha512-qNrYbZqMx0uJAfKnKclPh+dTwK33KfLHYqtyODwd5HnXOjnkhc4qgn3BrK6RWyGZm5+sIFE7Q7Vz6QQtJB7w7g==}
+    dependencies:
+      '@types/node': 20.17.10
     dev: false
 
   /@types/connect@3.4.38:

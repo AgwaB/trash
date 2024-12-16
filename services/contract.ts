@@ -9,6 +9,7 @@ import { Wallet } from '@coral-xyz/anchor'
 import { TokenDescription } from '@/types/token'
 import { PROGRAM_ID, RPC_ENDPOINT, SEEDS } from '@/config'
 import anchor from '@coral-xyz/anchor'
+import BN from 'bn.js'
 
 const connection = new Connection(RPC_ENDPOINT)
 
@@ -171,7 +172,7 @@ export async function createRecycleTokenTransaction(
     const tx = new Transaction()
     
     for (const { mint, amount } of tokens) {
-      const timestamp = BigInt(Date.now())
+      const timestamp = new BN(Date.now().toString())
       const mintPubkey = new PublicKey(mint)
       
       // PDA 계정들 생성
@@ -236,8 +237,8 @@ export async function createRecycleTokenTransaction(
       // Create instruction with BigInt
       const instruction = await program.methods
         .recycleToken(
-          amount.toString(),
-          timestamp.toString()
+          new BN(amount.toString()),
+          timestamp
         )
         .accounts(accounts)
         .instruction()
