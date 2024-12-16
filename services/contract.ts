@@ -162,7 +162,7 @@ export async function fetchRecentRecycles(limit: number = 10) {
 // 토큰 리사이클 트랜잭션 생성 함수
 export async function createRecycleTokenTransaction(
   userPublicKeyStr: string,
-  tokens: { mint: string, amount: number }[]
+  tokens: { mint: string, amount: string }[]
 ) {
   try {
     const userPublicKey = new PublicKey(userPublicKeyStr)

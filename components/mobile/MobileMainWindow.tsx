@@ -64,6 +64,7 @@ export default function MobileMainWindow() {
 
       // 리사이클할 토큰 목록 생성
       const recycleList = selectedTokenData
+      .filter(token => Number(token.amount) > 0)
         .map(token => {
           const amount = new BN(token.amount)
           const decimals = new BN(token.decimals || 0)
@@ -72,10 +73,9 @@ export default function MobileMainWindow() {
           
           return {
             mint: token.mint,
-            amount: rawAmount.toNumber()
+            amount: rawAmount.toString()
           }
         })
-        .filter(token => token.amount > 0)
 
       if (recycleList.length === 0) return
 
