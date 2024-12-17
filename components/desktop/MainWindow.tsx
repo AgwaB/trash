@@ -164,10 +164,17 @@ export default function MainWindow() {
     }
 
     if (isLoading) return <LoadingView />
-    if (!tokens || tokens.length === 0) return <EmptyView />
+    
+    // 토큰 필터링
+    const validTokens = tokens?.filter(token => 
+      Number(token.amount) > 0 && (token.solValue && Number(token.solValue) > 0)
+    )
+    
+    if (!validTokens || validTokens.length === 0) return <EmptyView />
+    
     return (
       <TokenList
-        tokens={tokens}
+        tokens={validTokens}  // 필터링된 토큰 목록 전달
         selectedTokens={selectedTokens}
         onSelectToken={handleTokenSelect}
         onPointsChange={setCalculatedPoints}
