@@ -293,15 +293,14 @@ export async function fetchTokens(ownerAddress: string): Promise<Token[]> {
 
         // 토큰 라벨 정보 가져오기
         const labelSystem = await getAllLabels()
-        
         // 토큰에 SOL 가치와 라벨 정보 추가
         return tokens.map(token => {
-          const label = labelSystem.getTokenLabel(token.mint)
+          const label = labelSystem.getTokenLabel(token.id)
           return {
             ...token,
             amount: token.amount.toString(),
             solValue: prices[token.id]?.toString() || '0',
-            description: token.description?.replace(/\*/g, ''),
+            description: label.description.replace(/\*/g, ''),
             multiplier: label.multiplier
           }
         });
@@ -335,7 +334,7 @@ export async function fetchToken(mintAddress: string): Promise<Token | undefined
     if (!metadata) return undefined
 
     const token: Token = {
-      id: metadata.address.toString(),
+      id: mintAddress,
       mint: metadata.address.toString(),
       name: metadata.name,
       symbol: metadata.symbol,

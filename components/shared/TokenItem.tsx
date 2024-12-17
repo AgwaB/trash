@@ -9,9 +9,10 @@ interface TokenItemProps {
   index: number
   onSelect: (tokenId: string) => void
   isSelected: boolean
+  isMobile: boolean
 }
 
-export default function TokenItem({ token, index, onSelect, isSelected }: TokenItemProps) {
+export default function TokenItem({ token, index, onSelect, isSelected, isMobile }: TokenItemProps) {
   const isShinyTrash = token.description === TokenDescription.SHINY_TRASH
   
   const handleCheckboxClick = (e: React.MouseEvent) => {
@@ -36,14 +37,14 @@ export default function TokenItem({ token, index, onSelect, isSelected }: TokenI
   return (
     <div className={`flex w-full h-[80px] border-b border-[#DFDFDF] ${isSelected ? 'bg-[#333096]' : 'bg-white hover:bg-[#333096]'} group cursor-pointer`}>
       {/* Index */}
-      <div className="w-[58px] h-full border-r border-[#DFDFDF] flex items-center justify-center">
+      <div className={`${isMobile ? 'w-[40px]' : 'w-[58px]'} h-full border-r border-[#DFDFDF] flex items-center justify-center`}>
         <span className={`font-ms-sans text-[16px] leading-[34px] ${isSelected ? 'text-[#FEFEFE]' : 'text-[#0A0A0A] group-hover:text-[#FEFEFE]'}`}>
           {index + 1}
         </span>
       </div>
 
       {/* Name */}
-      <div className="w-[310px] h-full border-r border-[#DFDFDF] flex items-center px-4">
+      <div className={`${isMobile ? 'w-[180px]' : 'w-[310px]'} h-full border-r border-[#DFDFDF] flex items-center px-4`}>
         <div className="flex items-center gap-4">
           <div className="w-10 h-10 relative">
             <Image
@@ -54,15 +55,15 @@ export default function TokenItem({ token, index, onSelect, isSelected }: TokenI
               unoptimized
             />
           </div>
-          <span className={`font-ms-sans text-[16px] leading-[34px] ${isSelected ? 'text-[#FEFEFE]' : 'text-[#0A0A0A] group-hover:text-[#FEFEFE]'}`}>
+          <span className={`font-ms-sans text-[16px] leading-[34px] truncate ${isSelected ? 'text-[#FEFEFE]' : 'text-[#0A0A0A] group-hover:text-[#FEFEFE]'}`}>
             {`$${token.symbol}(${formatAmount(Number(token.amount))})`}
           </span>
         </div>
       </div>
 
       {/* Description */}
-      <div className="w-[144px] h-full border-r border-[#DFDFDF] flex items-center px-6">
-        <span className={`font-ms-sans text-[16px] leading-[34px] ${
+      <div className={`${isMobile ? 'w-[100px]' : 'w-[144px]'} h-full border-r border-[#DFDFDF] flex items-center justify-center px-2`}>
+        <span className={`font-ms-sans text-[16px] leading-[34px] truncate text-center ${
           isShinyTrash 
             ? `text-[#7F3DF0] ${isSelected ? 'text-[#FFF200]' : 'group-hover:text-[#FFF200]'}`
             : `text-[#0A0A0A] ${isSelected ? 'text-[#FEFEFE]' : 'group-hover:text-[#FEFEFE]'}`
@@ -72,7 +73,7 @@ export default function TokenItem({ token, index, onSelect, isSelected }: TokenI
       </div>
 
       {/* Action */}
-      <div className="w-[95px] h-full flex items-center justify-center">
+      <div className={`${isMobile ? 'w-[50px]' : 'w-[95px]'} h-full flex items-center justify-center`}>
         <button
           onClick={handleCheckboxClick}
           className="w-[16px] h-[16px] bg-white border-none relative shadow-[inset_-1px_-1px_0px_#FFF,inset_1px_1px_0px_#808080,inset_-2px_-2px_0px_#C1C1C1,inset_2px_2px_0px_#000]"

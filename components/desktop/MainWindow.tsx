@@ -167,7 +167,9 @@ export default function MainWindow() {
     
     // 토큰 필터링
     const validTokens = tokens?.filter(token => 
-      Number(token.amount) > 0 && (token.solValue && Number(token.solValue) > 0)
+      Number(token.amount) > 0
+      // && (token.solValue && Number(token.solValue) > 0)
+      // TODO: and price > 0
     )
     
     if (!validTokens || validTokens.length === 0) return <EmptyView />

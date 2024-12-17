@@ -353,7 +353,6 @@ export async function getAllLabels() {
   try {
     const program = await getProgram()
     const allLabels = await program.account.label.all()
-    
     // 라벨 정보를 mint 주소를 키로 하는 맵으로 변환
     const labelMap = new Map(
       allLabels.map(label => [
