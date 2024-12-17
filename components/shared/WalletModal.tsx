@@ -21,12 +21,6 @@ export default function WalletModal({ isOpen, onClose, isMobile = false }: Walle
     onClose()
   }
 
-  const filteredWallets = wallets.filter(
-    wallet => 
-      wallet.readyState === WalletReadyState.Installed || 
-      wallet.readyState === WalletReadyState.Loadable
-  )
-
   return (
     <div className="fixed inset-0 flex items-center justify-center z-50">
       <div className={cn(
@@ -55,7 +49,7 @@ export default function WalletModal({ isOpen, onClose, isMobile = false }: Walle
               Wallet connection is required for service access.
             </div>
             <div className="flex flex-col gap-3.5 h-[356px] overflow-y-auto">
-              {filteredWallets.map(wallet => (
+              {wallets.map(wallet => (
                 <button
                   key={wallet.adapter.name}
                   onClick={() => handleWalletClick(wallet.adapter)}
