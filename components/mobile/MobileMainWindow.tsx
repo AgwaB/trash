@@ -14,6 +14,7 @@ import { createRecycleTokenTransaction } from '@/services/contract'
 import { Connection } from '@solana/web3.js'
 import { RPC_ENDPOINT } from '@/config'
 import { Transaction } from '@solana/web3.js'
+import LoadingModal from '../shared/LoadingModal'
 
 const connection = new Connection(RPC_ENDPOINT)
 
@@ -65,16 +66,13 @@ export default function MobileMainWindow() {
     if (!connected || selectedTokens.length === 0 || !publicKey || !signTransaction) return
 
     try {
-      // 로딩 상태 추가
-      setIsRecycling(true)
-
       // 선택된 토큰들 가져오기
       const selectedTokenData = tokens?.filter(token => selectedTokens.includes(token.id))
       if (!selectedTokenData) return
 
       // 리사이클할 토큰 목록 생성
       const recycleList = selectedTokenData
-      .filter(token => Number(token.amount) > 0)
+        .filter(token => Number(token.amount) > 0)
         .map(token => {
           const amount = BigInt(token.amount)
           const decimals = BigInt(token.decimals || 0)
@@ -101,23 +99,33 @@ export default function MobileMainWindow() {
       // 트랜잭션 서명
       const signedTx = await signTransaction(tx)
       
-      // 트랜잭션 전송
-      const signature = await connection.sendRawTransaction(signedTx.serialize())
-      
-      // 트랜잭션 확인 및 목록 갱신
-      await connection.confirmTransaction(signature)
-      
-      setSelectedTokens([])
-      setToast({
-        message: "리사이클이 완료되었습니다",
-        type: 'success'
-      })
-      
-      // 2초 대기 후 새로고침
-      await new Promise(resolve => setTimeout(resolve, 2000))
-      await mutate(undefined, { 
-        revalidate: true 
-      })
+      // 트랜잭션 전송 전에 모달 표시
+      setIsRecycling(true)
+
+      try {
+        // 트랜잭션 전송
+        const signature = await connection.sendRawTransaction(signedTx.serialize())
+        
+        // 트랜잭션 확인 대기
+        await connection.confirmTransaction(signature)
+        
+        // 트랜잭션이 성공적으로 완료됨
+        setSelectedTokens([])
+        setToast({
+          message: "리사이클이 완료되었습니다",
+          type: 'success'
+        })
+
+        // 토큰 목록 새로고침
+        await mutate(undefined, { 
+          revalidate: true 
+        })
+      } catch (error) {
+        throw error
+      } finally {
+        // 모달과 로딩 상태 해제
+        setIsRecycling(false)
+      }
 
     } catch (error) {
       console.error('토큰 리사이클 중 오류:', error)
@@ -125,7 +133,7 @@ export default function MobileMainWindow() {
         message: error instanceof Error ? error.message : "리사이클에 실패했습니다",
         type: 'error'
       })
-    } finally {
+      // 에러 발생 시에도 상태 초기화
       setIsRecycling(false)
     }
   }
@@ -277,6 +285,11 @@ export default function MobileMainWindow() {
           onClose={() => setToast(null)}
         />
       )}
+
+      <LoadingModal 
+        isOpen={isRecycling} 
+        onClose={() => setIsRecycling(false)}
+      />
     </>
   )
 } 
