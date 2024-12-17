@@ -52,7 +52,11 @@ const nextConfig: NextConfig = {
       {
         protocol: 'https',
         hostname: 'shdw-drive.genesysgo.net',
-      }
+      },
+      {
+        protocol: 'https',
+        hostname: '**.coingecko.com',
+      },
     ],
     unoptimized: true
   },

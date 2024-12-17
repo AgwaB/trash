@@ -301,7 +301,7 @@ export async function fetchTokens(ownerAddress: string): Promise<Token[]> {
             ...token,
             amount: token.amount.toString(),
             solValue: prices[token.id]?.toString() || '0',
-            description: label.description,
+            description: token.description?.replace(/\*/g, ''),
             multiplier: label.multiplier
           }
         });

@@ -78,7 +78,6 @@ export async function fetchUserStats(userAddress: string) {
       lastUpdated: userStats.lastUpdated.toString()
     }
   } catch (error) {
-    console.error('Error fetching user stats:', error)
     return {
       recycleCount: '0',
       totalSolReceived: '0',

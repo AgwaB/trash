@@ -1,8 +1,9 @@
-import React, { useEffect } from 'react'
+import React from 'react'
 import { Token } from '@/types/token'
 import TokenItem from './TokenItem'
 import TableHeader from './TableHeader'
 import { Decimal } from 'decimal.js'
+import { calculateTotalPoints } from '@/utils/calculatePoints'
 
 interface TokenListProps {
   tokens: Token[]
@@ -10,19 +11,6 @@ interface TokenListProps {
   onSelectToken: (tokenId: string) => void
   onPointsChange: (points: number) => void
   isMobile?: boolean
-}
-
-const calculatePoints = (tokens: Token[], selectedTokens: string[]) => {
-  return tokens
-    .filter(token => selectedTokens.includes(token.id))
-    .reduce((total, token) => {
-      if (token.solValue) {
-        // SOL decimal(9)을 적용하여 계산
-        const solValue = Number(token.solValue) / 1e9
-        return total + (solValue * 100)
-      }
-      return total
-    }, 0)
 }
 
 export default function TokenList({ 
@@ -47,9 +35,10 @@ export default function TokenList({
       return bTotalValue.minus(aTotalValue).toNumber()
     })
 
-  useEffect(() => {
-    const points = calculatePoints(tokens, selectedTokens)
-    onPointsChange(points) // 소수점 버림
+  // 선택된 토큰들의 포인트 계산
+  React.useEffect(() => {
+    const points = calculateTotalPoints(tokens, selectedTokens)
+    onPointsChange(points)
   }, [selectedTokens, tokens, onPointsChange])
 
   return (

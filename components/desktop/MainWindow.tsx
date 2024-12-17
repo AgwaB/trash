@@ -131,7 +131,7 @@ export default function MainWindow() {
       }
 
     } catch (error) {
-      console.error('토큰 리사이클 중 오류:', error)
+      console.error('token recycle error:', error)
       setToast({
         message: error instanceof Error ? error.message : "리사이클에 실패했습니다",
         type: 'error'
