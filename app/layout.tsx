@@ -7,10 +7,10 @@ import { Toaster } from "@/components/ui/toaster"
 
 export const metadata: Metadata = {
   title: "Trash.meme",
-  description: "여기를 눌러 링크를 확인하세요.",
+  description: "Now I Am Become trash.meme, the Destroyer of Solana Memes.",
   openGraph: {
     title: 'Trash.meme',
-    description: '여기를 눌러 링크를 확인하세요.',
+    description: 'Now I Am Become trash.meme, the Destroyer of Solana Memes.',
     url: 'https://www.trash.meme/',
     siteName: 'Trash.meme',
     images: [
@@ -27,7 +27,7 @@ export const metadata: Metadata = {
   twitter: {
     card: 'summary_large_image',
     title: 'Trash.meme',
-    description: '여기를 눌러 링크를 확인하세요.',
+    description: 'Now I Am Become trash.meme, the Destroyer of Solana Memes.',
     images: ['/thumbnail.png'],
   },
   icons: {
