@@ -9,6 +9,7 @@ import { getCachedPrices, updateCachedPrice, getExpiredTokenIds, getAllCachedPri
 import { Decimal } from 'decimal.js'
 import { getAllLabels } from './contract'
 import { TOKEN_PROGRAM_ID, TOKEN_2022_PROGRAM_ID, RPC_ENDPOINT, WSOL_MINT } from '@/config'
+import { sleep } from "@/utils/sleep"
 
 // Token Whitelist Interface
 interface WhitelistedToken {
@@ -97,6 +98,7 @@ async function getSftTokens(ownerAddress: string) {
     const metadataList = []
     for (const chunk of chunks) {
       const chunkMetadata = await metaplex.nfts().findAllByMintList({ mints: chunk })
+      await sleep(50)
       metadataList.push(...chunkMetadata)
     }
     
@@ -162,6 +164,7 @@ async function getToken2022s(ownerAddress: string) {
         }
 
         token.imageUri = await getTokenImageUri(token)
+        await sleep(50)
         return token
       })
     )

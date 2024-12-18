@@ -24,7 +24,7 @@ export default function MobileMainWindow() {
   const [isHowItWorksOpen, setIsHowItWorksOpen] = useState(false)
   const [isPressed, setIsPressed] = useState(false)
   const [selectedTokens, setSelectedTokens] = useState<string[]>([])
-  const [calculatedPoints, setCalculatedPoints] = useState(0)
+  const [calculatedPoints, setCalculatedPoints] = useState<string>('0')
   const [toast, setToast] = useState<{
     message: string;
     type: 'success' | 'error';

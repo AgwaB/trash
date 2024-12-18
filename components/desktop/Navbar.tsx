@@ -9,15 +9,28 @@ import { useUserStats } from '@/hooks/useUserStats'
 export default function Navbar() {
   const { publicKey } = useWallet()
   const [isWalletModalOpen, setIsWalletModalOpen] = useState(false)
+  const [isLogoPressed, setIsLogoPressed] = useState(false)
   const userStats = useUserStats(publicKey?.toString())
   const points = userStats ? Number(userStats.totalPointsEarned) : 0
+
+  const handleLogoClick = () => {
+    window.location.reload()
+  }
 
   return (
     <>
       <nav className="h-[60px] bg-[#503D9E] border-b border-[#6E6BA7] md:border-black">
         <div className="flex justify-between items-center h-full px-4 md:px-12">
           {/* Left side - Logo */}
-          <div className="flex items-center gap-3">
+          <button
+            className={`flex items-center gap-3 transition-transform border-none bg-transparent ${
+              isLogoPressed ? 'scale-95' : ''
+            }`}
+            onClick={handleLogoClick}
+            onMouseDown={() => setIsLogoPressed(true)}
+            onMouseUp={() => setIsLogoPressed(false)}
+            onMouseLeave={() => setIsLogoPressed(false)}
+          >
             <div className="w-[35px] h-[35px] relative">
               <Image
                 src="/icons/trash-logo.png"
@@ -29,7 +42,7 @@ export default function Navbar() {
             <h1 className="text-white text-[14px] font-ms-sans font-[700]">
               Trash.meme
             </h1>
-          </div>
+          </button>
 
           {/* Right side */}
           <div className="flex items-center gap-3 md:gap-5">

@@ -28,7 +28,7 @@ export default function MainWindow() {
   const [isPressed, setIsPressed] = useState(false)
   const [isHovered, setIsHovered] = useState(false)
   const [selectedTokens, setSelectedTokens] = useState<string[]>([])
-  const [calculatedPoints, setCalculatedPoints] = useState(0)
+  const [calculatedPoints, setCalculatedPoints] = useState<string>('0')
   const [toast, setToast] = useState<{
     message: string;
     type: 'success' | 'error';
@@ -192,7 +192,7 @@ export default function MainWindow() {
         md:max-w-[450px]                      /* 최대 너비는 450px로 제한 */
         md:h-[calc(100vh-120px)]              /* 화면 높이에서 navbar, footer 높이 제외 */
         md:max-h-[600px]                      /* 최대 높이는 600px로 제한 */
-        md:min-h-[400px]                      /* 최소 높이 설정 */
+        md:min-h-[400px]                      /* 최소 ���이 설정 */
         flex flex-col
       ">
         <Win98TitleBar className="h-[36px] bg-[#503D9E] text-white flex-shrink-0">

@@ -8,7 +8,7 @@ interface TokenListProps {
   tokens: Token[]
   selectedTokens: string[]
   onSelectToken: (tokenId: string) => void
-  onPointsChange: (points: number) => void
+  onPointsChange: (points: string) => void
   isMobile?: boolean
 }
 
@@ -17,10 +17,13 @@ const calculatePoints = (tokens: Token[], selectedTokens: string[]) => {
     .filter(token => selectedTokens.includes(token.id))
     .reduce((total, token) => {
       if (token.solValue) {
-        return total + (Number(token.solValue) * 100)
+        const value = new Decimal(token.solValue)
+        const points = value.mul(100)
+        return total.plus(points)
       }
       return total
-    }, 0)
+    }, new Decimal(0))
+    .toString()
 }
 
 export default function TokenList({ 
@@ -47,7 +50,8 @@ export default function TokenList({
 
   useEffect(() => {
     const points = calculatePoints(tokens, selectedTokens)
-    onPointsChange(points) // 소수점 버림
+    console.log(`points: ${points}`)
+    onPointsChange(points)
   }, [selectedTokens, tokens, onPointsChange])
 
   return (

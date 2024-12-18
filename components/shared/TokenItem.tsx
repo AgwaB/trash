@@ -15,6 +15,10 @@ interface TokenItemProps {
 export default function TokenItem({ token, index, onSelect, isSelected, isMobile }: TokenItemProps) {
   const isShinyTrash = token.description === TokenDescription.SHINY_TRASH
   
+  const handleClick = () => {
+    onSelect(token.id)
+  }
+  
   const handleCheckboxClick = (e: React.MouseEvent) => {
     e.stopPropagation()
     onSelect(token.id)
@@ -35,7 +39,10 @@ export default function TokenItem({ token, index, onSelect, isSelected, isMobile
   }
   
   return (
-    <div className={`flex w-full h-[80px] border-b border-[#DFDFDF] ${isSelected ? 'bg-[#333096]' : 'bg-white hover:bg-[#333096]'} group cursor-pointer`}>
+    <div 
+      className={`flex w-full h-[80px] border-b border-[#DFDFDF] ${isSelected ? 'bg-[#333096]' : 'bg-white hover:bg-[#333096]'} group cursor-pointer`}
+      onClick={handleClick}
+    >
       {/* Index */}
       <div className={`${isMobile ? 'w-[40px]' : 'w-[58px]'} h-full border-r border-[#DFDFDF] flex items-center justify-center`}>
         <span className={`font-ms-sans text-[16px] leading-[34px] ${isSelected ? 'text-[#FEFEFE]' : 'text-[#0A0A0A] group-hover:text-[#FEFEFE]'}`}>
