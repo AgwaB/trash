@@ -34,8 +34,8 @@ export default function TokenList({
   onPointsChange,
   isMobile = false 
 }: TokenListProps) {
-  // Filter out tokens with zero amount and then sort
   const sortedTokens = [...tokens]
+  // Filter out tokens with zero amount and then sort
     .filter(token => new Decimal(token.amount || '0').gt(0))
     .sort((a, b) => {
       const aAmount = new Decimal(a.amount || '0')

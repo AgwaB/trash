@@ -10,6 +10,7 @@ import { Decimal } from 'decimal.js'
 import { getAllLabels } from './contract'
 import { TOKEN_PROGRAM_ID, TOKEN_2022_PROGRAM_ID, RPC_ENDPOINT, WSOL_MINT } from '@/config'
 import { sleep } from "@/utils/sleep"
+import { TokenStandard } from '@metaplex-foundation/mpl-token-metadata'
 
 // Token Whitelist Interface
 interface WhitelistedToken {
@@ -105,7 +106,21 @@ export async function getSftTokens(ownerAddress: string) {
 
     const processedTokens = await Promise.all(
       metadataList
-        .filter((item): item is any => item !== null)
+        .filter((item): item is any => {
+          if (!item) return false
+        
+          // NFT 관련 토큰 스탠다드 필터링
+          const nonFungibleTypes = [
+            TokenStandard.NonFungible,
+            TokenStandard.NonFungibleEdition,
+            TokenStandard.ProgrammableNonFungible,
+            TokenStandard.ProgrammableNonFungibleEdition
+          ]
+          
+          // Option<TokenStandard> 타입 체크
+          const tokenStandard = item.tokenStandard
+          return !tokenStandard || !nonFungibleTypes.includes(tokenStandard)
+        })
         .map(async item => {
           const tokenAccount = tokenAccounts.value.find(
             ta => ta.account.data.parsed.info.mint === item.mintAddress.toString()
@@ -152,6 +167,11 @@ export async function getToken2022s(ownerAddress: string) {
         const mintAddress = account.account.data.parsed.info.mint
         const metadata = await getTokenMetadata(connection, new PublicKey(mintAddress))
         
+        // decimals가 0이면 NFT로 간주하고 필터링
+        if (account.account.data.parsed.info.tokenAmount.decimals === 0) {
+          return null
+        }
+
         const token: Token = {
           id: new PublicKey(mintAddress).toString(),
           mint: mintAddress,
@@ -172,7 +192,8 @@ export async function getToken2022s(ownerAddress: string) {
       })
     )
 
-    return processedTokens
+    // null 값 필터링
+    return processedTokens.filter((token): token is Token => token !== null)
   } catch (error) {
     console.error('Error in getToken2022s:', error)
     throw error

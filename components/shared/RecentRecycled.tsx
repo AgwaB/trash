@@ -34,7 +34,7 @@ export default function RecentRecycled() {
     if (predefinedImage) {
       return predefinedImage
     }
-    return recentRecycle.imageUri || "/images/default-token.png"
+    return recentRecycle.imageUri || "/images/default-token-recent.png"
   }
 
   return (

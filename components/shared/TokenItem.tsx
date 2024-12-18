@@ -27,7 +27,7 @@ export default function TokenItem({ token, index, onSelect, isSelected, isMobile
         setImageError(true)
         setIsLoading(false)
       }
-    }, 5000) // 5초 후에도 로딩 중이면 에러로 처리
+    }, 5000)
 
     return () => clearTimeout(timeoutId)
   }, [token.imageUri, isLoading])
@@ -43,21 +43,17 @@ export default function TokenItem({ token, index, onSelect, isSelected, isMobile
   
   // 이미지 소스 결정 로직
   const getImageSource = () => {
+    if (imageError) {
+      return "/images/default-token-list.png"
+    }
+
     const predefinedImage = getPredefinedTokenImage(token.id)
     if (predefinedImage) {
       return predefinedImage
     }
 
-    if (token.imageUri) {
-      return token.imageUri
-    }
-    
-    return "/images/default-token.png"
+    return token.imageUri || "/images/default-token-list.png"
   }
-  
-  const tokenImage = imageError || !token.imageUri
-    ? '/images/default-token.png'  // 기본 토큰 이미지 경로
-    : token.imageUri
 
   return (
     <div 
@@ -76,7 +72,7 @@ export default function TokenItem({ token, index, onSelect, isSelected, isMobile
         <div className="flex items-center gap-4">
           <div className="w-10 h-10 relative flex-shrink-0">
             <Image
-              src={tokenImage}
+              src={getImageSource()}
               alt={token.name}
               width={32}
               height={32}
@@ -86,7 +82,7 @@ export default function TokenItem({ token, index, onSelect, isSelected, isMobile
                 setIsLoading(false)
               }}
               onLoadingComplete={() => setIsLoading(false)}
-              priority={index < 10} // 처음 10개 이미지는 우선 로딩
+              priority={index < 10}
             />
             {isLoading && !imageError && (
               <div className="absolute inset-0 flex items-center justify-center bg-gray-100">
