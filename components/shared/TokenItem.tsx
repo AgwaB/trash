@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import Image from 'next/image'
 import { Token, TokenDescription } from '@/types/token'
 import { getTokenFallbackImage as getPredefinedTokenImage } from '@/constants/tokenImages'
@@ -14,8 +14,23 @@ interface TokenItemProps {
 
 export default function TokenItem({ token, index, onSelect, isSelected, isMobile }: TokenItemProps) {
   const [imageError, setImageError] = useState(false)
+  const [isLoading, setIsLoading] = useState(true)
   
   const isShinyTrash = token.description === TokenDescription.SHINY_TRASH
+  
+  // 이미지 로딩 타임아웃 처리
+  useEffect(() => {
+    if (!token.imageUri) return
+
+    const timeoutId = setTimeout(() => {
+      if (isLoading) {
+        setImageError(true)
+        setIsLoading(false)
+      }
+    }, 5000) // 5초 후에도 로딩 중이면 에러로 처리
+
+    return () => clearTimeout(timeoutId)
+  }, [token.imageUri, isLoading])
   
   const handleClick = () => {
     onSelect(token.id)
@@ -66,8 +81,18 @@ export default function TokenItem({ token, index, onSelect, isSelected, isMobile
               width={32}
               height={32}
               className="object-contain"
-              onError={() => setImageError(true)}  // 이미지 로드 실패 시 기본 이미지로 전환
+              onError={() => {
+                setImageError(true)
+                setIsLoading(false)
+              }}
+              onLoadingComplete={() => setIsLoading(false)}
+              priority={index < 10} // 처음 10개 이미지는 우선 로딩
             />
+            {isLoading && !imageError && (
+              <div className="absolute inset-0 flex items-center justify-center bg-gray-100">
+                {/* 로딩 인디케이터 (선택사항) */}
+              </div>
+            )}
           </div>
           <div className="flex flex-col">
             <span className={`font-ms-sans text-[16px] leading-[20px] truncate ${
