@@ -292,6 +292,7 @@ export default function MainWindow() {
       <WalletModal 
         isOpen={isWalletModalOpen}
         onClose={() => setIsWalletModalOpen(false)}
+        isMobile={false}
       />
 
       <HowItWorksModal
