@@ -244,6 +244,7 @@ export async function getTokenPrices(tokenIds: string[]): Promise<Record<string,
 // 개별 토큰 조회 함수
 export async function fetchToken(mintAddress: string): Promise<Token | undefined> {
   try {
+    console.log("fetchToken", mintAddress)
     const connection = new Connection(RPC_ENDPOINT)
     const metaplex = new Metaplex(connection)
     const mintPubkey = new PublicKey(mintAddress)

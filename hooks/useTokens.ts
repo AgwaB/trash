@@ -82,7 +82,9 @@ export function useTokens(address: string | undefined) {
         ...token,
         solValue: prices[token.id] || '0',
         description: label.description.replace(/\*/g, ''),
-        multiplier: label.multiplier
+        multiplier: typeof label.multiplier === 'object' 
+          ? label.multiplier.toString() // BN 객체인 경우
+          : label.multiplier.toString() // 숫자인 경우
       }
     })
   }, [basicTokens, prices, labels])

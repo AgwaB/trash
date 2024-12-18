@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { useState } from 'react'
 import Image from 'next/image'
 import { Token, TokenDescription } from '@/types/token'
 import { getTokenFallbackImage as getPredefinedTokenImage } from '@/constants/tokenImages'
@@ -13,6 +13,8 @@ interface TokenItemProps {
 }
 
 export default function TokenItem({ token, index, onSelect, isSelected, isMobile }: TokenItemProps) {
+  const [imageError, setImageError] = useState(false)
+  
   const isShinyTrash = token.description === TokenDescription.SHINY_TRASH
   
   const handleClick = () => {
@@ -38,6 +40,10 @@ export default function TokenItem({ token, index, onSelect, isSelected, isMobile
     return "/images/default-token.png"
   }
   
+  const tokenImage = imageError || !token.imageUri
+    ? '/images/default-token.png'  // 기본 토큰 이미지 경로
+    : token.imageUri
+
   return (
     <div 
       className={`flex w-full h-[80px] border-b border-[#DFDFDF] ${isSelected ? 'bg-[#333096]' : 'bg-white hover:bg-[#333096]'} group cursor-pointer`}
@@ -55,11 +61,12 @@ export default function TokenItem({ token, index, onSelect, isSelected, isMobile
         <div className="flex items-center gap-4">
           <div className="w-10 h-10 relative flex-shrink-0">
             <Image
-              src={getImageSource()}
-              alt={token.name || 'Token Image'}
-              fill
+              src={tokenImage}
+              alt={token.name}
+              width={32}
+              height={32}
               className="object-contain"
-              unoptimized
+              onError={() => setImageError(true)}  // 이미지 로드 실패 시 기본 이미지로 전환
             />
           </div>
           <div className="flex flex-col">

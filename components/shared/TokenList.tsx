@@ -19,12 +19,12 @@ const calculatePoints = (tokens: Token[], selectedTokens: string[]) => {
       if (token.solValue) {
         const value = new Decimal(token.solValue)
         const amount = new Decimal(token.amount)
-        const points = value.mul(amount).mul(100)
-        return total.plus(points)
+        const multiplier = new Decimal(token.multiplier)
+        return total.plus(value.mul(amount).mul(multiplier))
       }
       return total
     }, new Decimal(0))
-    .toString()
+    .toFixed(20)
 }
 
 export default function TokenList({ 

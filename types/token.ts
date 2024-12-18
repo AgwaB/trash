@@ -15,10 +15,10 @@ export interface Token {
   description: string
   imageUri?: string
   amount: string
+  decimals: number
   type: TokenType
   solValue?: string
-  multiplier?: string
-  decimals: number
+  multiplier: string
 }
 
 // Token Whitelist Description

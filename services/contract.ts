@@ -147,14 +147,7 @@ export async function fetchRecentRecycles(limit: number = 10) {
     return sortedRecycles
   } catch (error) {
     console.error('Error fetching recent recycles:', error)
-    return [{
-      user: '',
-      tokenMint: '',
-      tokenAmount: '0',
-      solReceived: '0',
-      pointsEarned: '0',
-      timestamp: '0'
-    }]
+    return []
   }
 }
 
