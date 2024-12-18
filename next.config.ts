@@ -27,38 +27,20 @@ const nextConfig: NextConfig = {
     remotePatterns: [
       {
         protocol: 'https',
-        hostname: 'arweave.net',
+        hostname: '*',
       },
       {
-        protocol: 'https',
-        hostname: '**.ipfs.nftstorage.link',
-      },
-      {
-        protocol: 'https',
-        hostname: '**.ipfs.dweb.link',
-      },
-      {
-        protocol: 'https',
-        hostname: 'static.getgrass.io',
-      },
-      {
-        protocol: 'https',
-        hostname: 'metadata.degods.com',
-      },
-      {
-        protocol: 'https',
-        hostname: '**.cloudfront.net',
-      },
-      {
-        protocol: 'https',
-        hostname: 'shdw-drive.genesysgo.net',
-      },
-      {
-        protocol: 'https',
-        hostname: '**.coingecko.com',
+        protocol: 'http',
+        hostname: '*',
       },
     ],
-    unoptimized: true
+    unoptimized: true,
+    domains: [
+      'arweave.net',
+      'www.arweave.net',
+      'cdn.helius-rpc.com',
+      // 필요한 다른 도메인들 추가
+    ],
   },
   reactStrictMode: true,
   eslint: {
