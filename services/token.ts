@@ -48,7 +48,7 @@ interface JupiterPriceResponse {
 }
 
 // 이미지 URI를 가져오는 기본 함수
-async function getTokenImageUri(token: Token): Promise<string | undefined> {
+export async function getTokenImageUri(token: Token): Promise<string | undefined> {
   if (!token.uri) return undefined
 
   return unstable_cache(

@@ -27,7 +27,7 @@ function getTokenDescription(typeIndex: number): TokenDescription {
 
 export function useTokens(address: string | undefined) {
   // 1. 기본 토큰 데이터 가져오기
-  const { data: basicTokens, isLoading: isLoadingTokens } = useSWR(
+  const { data: basicTokens, isLoading: isLoadingTokens, mutate: mutateBasicTokens } = useSWR(
     address ? `basic-tokens/${address}` : null,
     async () => {
       if (!address) return null
@@ -67,7 +67,6 @@ export function useTokens(address: string | undefined) {
     }
   )
 
-  console.log(JSON.stringify(labels))
   // 4. 모든 데이터를 조합하여 최종 토큰 목록 생성
   const tokens = useMemo(() => {
     if (!basicTokens || !prices || !labels) return null
@@ -94,5 +93,10 @@ export function useTokens(address: string | undefined) {
     tokens,
     isLoading,
     isError: !tokens && !isLoading,
+    mutate: async () => {
+      await mutateBasicTokens(undefined, {
+        revalidate: true
+      })
+    }
   }
 } 

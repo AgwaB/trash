@@ -117,9 +117,7 @@ export default function MobileMainWindow() {
         })
 
         // 토큰 목록 새로고침
-        await mutate(undefined, { 
-          revalidate: true 
-        })
+        await mutate()
       } catch (error) {
         throw error
       } finally {
