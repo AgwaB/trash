@@ -7,7 +7,29 @@ import { Toaster } from "@/components/ui/toaster"
 
 export const metadata: Metadata = {
   title: "Trash.meme",
-  description: "Recycle your worthless tokens",
+  description: "여기를 눌러 링크를 확인하세요.",
+  openGraph: {
+    title: 'Trash.meme',
+    description: '여기를 눌러 링크를 확인하세요.',
+    url: 'https://www.trash.meme/',
+    siteName: 'Trash.meme',
+    images: [
+      {
+        url: '/thumbnail.png',
+        width: 1200,
+        height: 630,
+        alt: 'Trash.meme Preview',
+      },
+    ],
+    locale: 'ko_KR',
+    type: 'website',
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'Trash.meme',
+    description: '여기를 눌러 링크를 확인하세요.',
+    images: ['/thumbnail.png'],
+  },
   icons: {
     icon: '/favicon.png',
   },
