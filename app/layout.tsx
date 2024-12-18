@@ -8,6 +8,9 @@ import { Toaster } from "@/components/ui/toaster"
 export const metadata: Metadata = {
   title: "Trash.meme",
   description: "Recycle your worthless tokens",
+  icons: {
+    icon: '/favicon.png',
+  },
 }
 
 export default function RootLayout({
@@ -17,6 +20,9 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en" className="bg-[#504DD7]">
+      <head>
+        <link rel="icon" href="/favicon.png" sizes="any" />
+      </head>
       <body className="bg-[#504DD7]">
         <WalletProviders>
           <PointsProvider>

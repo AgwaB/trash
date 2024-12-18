@@ -44,7 +44,7 @@ export default function TokenItem({ token, index, onSelect, isSelected, isMobile
       </div>
 
       {/* Name */}
-      <div className={`${isMobile ? 'w-[215px]' : 'w-[310px]'} h-full border-r border-[#DFDFDF] flex items-center justify-center px-4`}>
+      <div className={`${isMobile ? 'w-[215px]' : 'w-[310px]'} h-full border-r border-[#DFDFDF] flex items-center px-4`}>
         <div className="flex items-center gap-4">
           <div className="w-10 h-10 relative flex-shrink-0">
             <Image
