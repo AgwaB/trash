@@ -63,6 +63,14 @@ const nextConfig: NextConfig = {
   reactStrictMode: true,
   eslint: {
     ignoreDuringBuilds: true
+  },
+  experimental: {
+    serverActions: {
+      bodySizeLimit: '2mb',
+    },
+  },
+  serverRuntimeConfig: {
+    maxDuration: 60,
   }
 };
 

@@ -94,14 +94,14 @@ async function getSftTokens(ownerAddress: string) {
       chunks.push(mintAddresses.slice(i, i + CHUNK_SIZE))
     }
 
-    // Process each chunk and combine results
+    // Process each chunk sequentially
     const metadataList = []
     for (const chunk of chunks) {
+      await sleep(50)  // 각 청크 처리 전 딜레이
       const chunkMetadata = await metaplex.nfts().findAllByMintList({ mints: chunk })
-      await sleep(50)
       metadataList.push(...chunkMetadata)
     }
-    
+
     const processedTokens = await Promise.all(
       metadataList
         .filter((item): item is any => item !== null)
@@ -182,7 +182,7 @@ async function fetchTokenPrices(tokenIds: string[]): Promise<Record<string, Deci
     // 최시된 가격 정보 확인
     const cachedPrices = await getCachedPrices(tokenIds)
     
-    // 캐시되지 않은 토큰 ID들 필터링
+    // 캐시�� 않은 토큰 ID들 필터링
     const uncachedTokenIds = tokenIds.filter(id => !cachedPrices[id])
     
     // 만료된 캐시 항목 확인
@@ -314,7 +314,7 @@ export async function fetchTokens(ownerAddress: string): Promise<Token[]> {
     },
     [`tokens-${ownerAddress}`],
     {
-      revalidate: 30,
+      revalidate: 60,
       tags: ['tokens']
     }
   )()

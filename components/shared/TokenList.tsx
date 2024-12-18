@@ -18,7 +18,8 @@ const calculatePoints = (tokens: Token[], selectedTokens: string[]) => {
     .reduce((total, token) => {
       if (token.solValue) {
         const value = new Decimal(token.solValue)
-        const points = value.mul(100)
+        const amount = new Decimal(token.amount)
+        const points = value.mul(amount).mul(100)
         return total.plus(points)
       }
       return total
