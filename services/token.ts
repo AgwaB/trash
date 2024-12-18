@@ -311,7 +311,7 @@ export async function fetchTokens(ownerAddress: string): Promise<Token[]> {
     },
     [`tokens-${ownerAddress}`],
     {
-      revalidate: 120,
+      revalidate: 30,
       tags: ['tokens']
     }
   )()

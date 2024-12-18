@@ -44,9 +44,9 @@ export default function TokenItem({ token, index, onSelect, isSelected, isMobile
       </div>
 
       {/* Name */}
-      <div className={`${isMobile ? 'w-[180px]' : 'w-[310px]'} h-full border-r border-[#DFDFDF] flex items-center px-4`}>
+      <div className={`${isMobile ? 'w-[215px]' : 'w-[310px]'} h-full border-r border-[#DFDFDF] flex items-center justify-center px-4`}>
         <div className="flex items-center gap-4">
-          <div className="w-10 h-10 relative">
+          <div className="w-10 h-10 relative flex-shrink-0">
             <Image
               src={getImageSource()}
               alt={token.name || 'Token Image'}
@@ -55,14 +55,23 @@ export default function TokenItem({ token, index, onSelect, isSelected, isMobile
               unoptimized
             />
           </div>
-          <span className={`font-ms-sans text-[16px] leading-[34px] truncate ${isSelected ? 'text-[#FEFEFE]' : 'text-[#0A0A0A] group-hover:text-[#FEFEFE]'}`}>
-            {`$${token.symbol}(${formatAmount(Number(token.amount))})`}
-          </span>
+          <div className="flex flex-col">
+            <span className={`font-ms-sans text-[16px] leading-[20px] truncate ${
+              isSelected ? 'text-[#FEFEFE]' : 'text-[#0A0A0A] group-hover:text-[#FEFEFE]'
+            }`}>
+              ${token.symbol}
+            </span>
+            <span className={`font-ms-sans text-[14px] leading-[18px] truncate ${
+              isSelected ? 'text-[#FEFEFE]' : 'text-[#0A0A0A] group-hover:text-[#FEFEFE]'
+            }`}>
+              ({formatAmount(Number(token.amount))})
+            </span>
+          </div>
         </div>
       </div>
 
       {/* Description */}
-      <div className={`${isMobile ? 'w-[100px]' : 'w-[144px]'} h-full border-r border-[#DFDFDF] flex items-center justify-center px-2`}>
+      <div className={`${isMobile ? 'w-[113px]' : 'w-[160px]'} h-full border-r border-[#DFDFDF] flex items-center justify-center px-2`}>
         <span className={`font-ms-sans text-[16px] leading-[34px] truncate text-center ${
           isShinyTrash 
             ? `text-[#7F3DF0] ${isSelected ? 'text-[#FFF200]' : 'group-hover:text-[#FFF200]'}`
