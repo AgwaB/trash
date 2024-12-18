@@ -278,7 +278,7 @@ export async function getUserTokenAccounts(userAddress: string) {
     const tokenDetails = tokenAccounts.value.map((tokenAccount) => {
       const mintAddress = tokenAccount.account.data.parsed.info.mint
       const balance = tokenAccount.account.data.parsed.info.tokenAmount.uiAmount
-      const label = labelSystem.getTokenLabel(mintAddress)
+      const label = labelSystem[mintAddress]
 
       return {
         mint: mintAddress,
@@ -349,47 +349,26 @@ function getTokenDescription(typeIndex: number): TokenDescription {
   }
 }
 
+// 라벨 정보만 가져오는 함수
 export async function getAllLabels() {
   try {
     const program = await getProgram()
-    const allLabels = await program.account.label.all()
-    // 라벨 정보를 mint 주소를 키로 하는 맵으로 변환
-    const labelMap = new Map(
-      allLabels.map(label => [
-        label.account.mint.toString(),
-        {
-          name: label.account.name,
-          multiplier: label.account.multiplier.toString()
-        }
-      ])
-    )
-
-    return {
-      getTokenLabel: (mintAddress: string) => {
-        // 라벨이 있는 경우
-        const label = labelMap.get(mintAddress)
-        if (label) {
-          return {
+    const labelAccounts = await program.account.label.all()
+    
+    return Object.fromEntries(
+      labelAccounts.map(account => {
+        const label = account.account
+        return [
+          label.mint.toString(),
+          {
             description: label.name,
             multiplier: label.multiplier
           }
-        }
-
-        // 라벨이 없는 경우 주소 기반으로 타입 결정
-        const typeIndex = getAddressType(mintAddress)
-        return {
-          description: getTokenDescription(typeIndex),
-          multiplier: '1'
-        }
-      }
-    }
-  } catch (error) {
-    console.error('Error fetching all labels:', error)
-    return {
-      getTokenLabel: (mintAddress: string) => ({
-        description: getTokenDescription(getAddressType(mintAddress)),
-        multiplier: '1'
+        ]
       })
-    }
+    )
+  } catch (error) {
+    console.error('Error fetching labels:', error)
+    return {}
   }
-} 
+}

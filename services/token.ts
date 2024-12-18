@@ -74,7 +74,8 @@ async function getTokenImageUri(token: Token): Promise<string | undefined> {
   )()
 }
 
-async function getSftTokens(ownerAddress: string) {
+// 기본 토큰 정보만 가져오기
+export async function getSftTokens(ownerAddress: string) {
   try {
     const connection = new Connection(RPC_ENDPOINT)
     const metaplex = new Metaplex(connection)
@@ -135,7 +136,7 @@ async function getSftTokens(ownerAddress: string) {
   }
 }
 
-async function getToken2022s(ownerAddress: string) {
+export async function getToken2022s(ownerAddress: string) {
   try {
     const connection = new Connection(RPC_ENDPOINT)
     const owner = new PublicKey(ownerAddress)
@@ -176,34 +177,27 @@ async function getToken2022s(ownerAddress: string) {
   }
 }
 
-// 토큰 가격 정보를 져오는 함수
-async function fetchTokenPrices(tokenIds: string[]): Promise<Record<string, Decimal>> {
+// 가격 정보만 가져오기 (Decimal 대신 string 반환)
+export async function getTokenPrices(tokenIds: string[]): Promise<Record<string, string>> {
   try {
-    // 최시된 가격 정보 확인
     const cachedPrices = await getCachedPrices(tokenIds)
     
-    // 캐시�� 않은 토큰 ID들 필터링
     const uncachedTokenIds = tokenIds.filter(id => !cachedPrices[id])
-    
-    // 만료된 캐시 항목 확인
     const expiredTokenIds = getExpiredTokenIds(cachedPrices)
-    
-    // 조회가 필요한 토큰 ID들
     const tokensToFetch = [...new Set([...uncachedTokenIds, ...expiredTokenIds])]
+
     if (tokensToFetch.length === 0) {
-      // 모든 토큰이 유효한 캐시를 가지고 있는 경우
       return Object.fromEntries(
-        Object.entries(cachedPrices).map(([id, data]) => [id, data.price])
+        Object.entries(cachedPrices).map(([id, data]) => [id, data.price.toString()])
       )
     }
 
-    // 최대 100개씩 나어 요청
     const chunks = []
     for (let i = 0; i < tokensToFetch.length; i += 100) {
       chunks.push(tokensToFetch.slice(i, i + 100))
     }
 
-    const newPrices: Record<string, Decimal> = {}
+    const newPrices: Record<string, string> = {}
     
     for (const chunk of chunks) {
       const ids = chunk.join(',')
@@ -217,30 +211,27 @@ async function fetchTokenPrices(tokenIds: string[]): Promise<Record<string, Deci
 
       const data: JupiterPriceResponse = await response.json()
       
-      // 각 토큰의 가격 정보를 저장
       for (const [tokenId, priceInfo] of Object.entries(data.data)) {
         if (priceInfo && priceInfo.price) {
-          // 문자열을 Decimal로 직접 변환
-          newPrices[tokenId] = new Decimal(priceInfo.price)
+          newPrices[tokenId] = priceInfo.price
         } else {
-          newPrices[tokenId] = new Decimal(0)
+          newPrices[tokenId] = '0'
         }
       }
     }
 
-    // 새로운 가격 정보 개별 캐시 업데이트
+    // 캐시 업데이트 (내부적으로는 Decimal 사용)
     await Promise.all(
       Object.entries(newPrices).map(([tokenId, price]) => 
-        updateCachedPrice(tokenId, price)
+        updateCachedPrice(tokenId, new Decimal(price))
       )
     )
 
-    // 캐시된 가격과 새로운 가격 정보 병합
     return {
       ...Object.fromEntries(
         Object.entries(cachedPrices)
           .filter(([id]) => !expiredTokenIds.includes(id))
-          .map(([id, data]) => [id, data.price])
+          .map(([id, data]) => [id, data.price.toString()])
       ),
       ...newPrices
     }
@@ -248,76 +239,6 @@ async function fetchTokenPrices(tokenIds: string[]): Promise<Record<string, Deci
     console.error('Error fetching token prices:', error)
     return {}
   }
-}
-
-// 서버 사이드 폴링을 위한 함수
-export async function updateExpiredPrices(): Promise<void> {
-  try {
-    const cachedPrices = await getAllCachedPrices()
-    const expiredTokenIds = getExpiredTokenIds(cachedPrices)
-
-    if (expiredTokenIds.length > 0) {
-      await fetchTokenPrices(expiredTokenIds)
-    }
-  } catch (error) {
-    console.error('Error updating expired prices:', error)
-  }
-}
-
-// 캐시된 가격 정보를 가져오는 함수
-export async function getTokenPrices(tokenIds: string[]): Promise<Record<string, Decimal>> {
-  return unstable_cache(
-    async () => {
-      return fetchTokenPrices(tokenIds)
-    },
-    ['token-prices'],
-    {
-      revalidate: 60, // 1분마다 갱신
-      tags: ['token-prices']
-    }
-  )()
-}
-
-// fetchTokens 함수 수정
-export async function fetchTokens(ownerAddress: string): Promise<Token[]> {
-  return unstable_cache(
-    async () => {
-      try {
-        const [sftTokens, token2022s] = await Promise.all([
-          getSftTokens(ownerAddress),
-          getToken2022s(ownerAddress)
-        ])
-        
-        const tokens = [...sftTokens, ...token2022s]
-        
-        // 토큰 가격 정보 가져오기
-        const tokenIds = tokens.map(token => token.id)
-        const prices = await getTokenPrices(tokenIds)
-
-        // 토큰 라벨 정보 가져오기
-        const labelSystem = await getAllLabels()
-        // 토큰에 SOL 가치와 라벨 정보 추가
-        return tokens.map(token => {
-          const label = labelSystem.getTokenLabel(token.id)
-          return {
-            ...token,
-            amount: token.amount.toString(),
-            solValue: prices[token.id]?.toString() || '0',
-            description: label.description.replace(/\*/g, ''),
-            multiplier: label.multiplier
-          }
-        });
-      } catch (error) {
-        console.error('Error in fetchTokens:', error)
-        throw error
-      }
-    },
-    [`tokens-${ownerAddress}`],
-    {
-      revalidate: 60,
-      tags: ['tokens']
-    }
-  )()
 }
 
 // 개별 토큰 조회 함수

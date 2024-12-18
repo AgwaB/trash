@@ -6,7 +6,7 @@ interface CachedPrice {
   timestamp: number
 }
 
-const CACHE_DURATION = 60 * 1000 // 1분
+const CACHE_DURATION = 60 // 1분
 
 // 캐시된 모든 토큰 ID 목록을 저장하는 키
 const CACHED_TOKEN_IDS_KEY = 'cached-token-ids'
