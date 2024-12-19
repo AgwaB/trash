@@ -69,18 +69,18 @@ export default function HowItWorksModal({ isOpen, onClose, isMobile = false }: H
             <div className="absolute bottom-8 inset-x-0 flex justify-center">
               <button
                 onClick={onClose}
-                className="relative w-[208px] h-[38px] flex items-center justify-center"
+                className="relative w-[240px] h-[50px] flex items-center justify-center"
               >
                 <Image
                   src="/images/mobile-recycle.png"
                   alt="Close Button"
-                  width={208}
-                  height={38}
+                  width={240}
+                  height={50}
                   className="object-contain"
                 />
                 <span className="absolute inset-0 flex items-center justify-center 
-                              font-ms-sans text-[14px] text-white font-[700]">
-                  Closed
+                              font-ms-sans text-[16px] text-white">
+                  Close
                 </span>
               </button>
             </div>

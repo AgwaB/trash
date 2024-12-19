@@ -182,9 +182,9 @@ export default function MobileMainWindow() {
 
   return (
     <>
-      <div className="flex flex-col h-full bg-[#503D9E]">
+      <div className="flex flex-col h-full bg-[#504DA7]">
         {/* Header */}
-        <div className="h-[36px] flex-shrink-0">
+        <div className="h-[48px] flex-shrink-0">
           <div className="flex justify-between items-center w-full h-full px-4">
             <div className="flex items-center gap-2">
               <span className="font-ms-sans text-[16px] leading-[33px] text-[#FEFEFE] font-bold">
@@ -196,7 +196,7 @@ export default function MobileMainWindow() {
             </div>
             <div className="flex items-center">
               <div 
-                className="text-base leading-6 underline cursor-pointer mr-3 text-white"
+                className="text-[16px] leading-6 underline cursor-pointer mr-3 text-white"
                 onClick={() => setIsHowItWorksOpen(true)}
               >
                 How it works
@@ -233,15 +233,15 @@ export default function MobileMainWindow() {
         </div>
 
         {/* Footer */}
-        <div className="flex-shrink-0 bg-[#AA9ECA] mx-1 mb-1">
+        <div className="flex-shrink-0 bg-[#504DA7] mx-1 mb-1">
           <div className="h-[2px] border-t border-t-[#CCC0F8] border-b border-b-[#776EBA]" />
           <div className="p-4 flex flex-col items-center">
             {connected && (
               <>
-                <div className="font-ms-sans text-[14px] text-[#3C3987]">
+                <div className="font-ms-sans font-normal text-[16px] text-[#AA9ECA]">
                   Recycle for Points:
                 </div>
-                <div className="font-ms-sans text-[14px] text-black mb-2">
+                <div className="font-ms-sans font-bold text-[16px] text-[#FEFEFE] mb-2">
                   {calculatedPoints.toLocaleString()}
                 </div>
               </>
@@ -256,14 +256,14 @@ export default function MobileMainWindow() {
               }}
               onMouseDown={() => setIsPressed(true)}
               onMouseUp={() => setIsPressed(false)}
-              className="relative w-[208px] h-[38px] flex items-center justify-center"
+              className="relative w-[240px] h-[50px] flex items-center justify-center"
               disabled={isRecycling || (connected && (tokens?.length === 0 || selectedTokens.length === 0))}
             >
               <Image
                 src={getButtonImage()}
                 alt="Action Button"
-                width={208}
-                height={38}
+                width={240}
+                height={50}
                 className={`object-contain ${getButtonOpacity()}`}
               />
               <span className="absolute inset-0 flex items-center justify-center 
@@ -284,6 +284,7 @@ export default function MobileMainWindow() {
       <HowItWorksModal
         isOpen={isHowItWorksOpen}
         onClose={() => setIsHowItWorksOpen(false)}
+        isMobile={true}
       />
 
       {toast && (
