@@ -19,7 +19,7 @@ export default function Navbar() {
 
   return (
     <>
-      <nav className="h-[60px] bg-[#503D9E] border-b border-[#6E6BA7] md:border-black">
+      <nav className="h-[50px] bg-[#503D9E] border-b border-[#6E6BA7] md:border-black">
         <div className="flex justify-between items-center h-full px-4 md:px-12">
           {/* Left side - Logo */}
           <button
@@ -46,18 +46,36 @@ export default function Navbar() {
 
           {/* Right side */}
           <div className="flex items-center gap-3 md:gap-5">
-            <div className="bg-[#0A0A0A] px-4 py-2 rounded flex items-center gap-2 h-[35px]">
-              <div className="w-4 h-4 relative">
-                <Image
-                  src="/icons/trash-points.png"
-                  alt="Trash Points"
-                  fill
-                  className="object-contain"
-                />
+            {/* Points Display */}
+            <div className="w-[120px] h-[33px] bg-[#0A0A0A] relative">
+              {/* Inner shadows */}
+              <div className="absolute inset-0" style={{
+                boxShadow: `
+                  inset 3px 3px 0px rgba(33, 31, 72, 1),
+                  inset 1px 1px 0px rgba(58, 56, 129, 1),
+                  inset -1px -1px 0px rgba(205, 190, 248, 1)
+                `
+              }}>
+                {/* Content container */}
+                <div className="h-[33px] w-[120px] mt-[1px] flex items-center px-[15px] gap-[5px]">
+                  {/* Icon */}
+                  <div className="w-[29px] h-[28px] relative">
+                    <Image
+                      src="/icons/trash-points.png"
+                      alt="Trash Points"
+                      width={29}
+                      height={28}
+                      className="object-contain"
+                    />
+                  </div>
+                  {/* Points value */}
+                  <div className="w-[62px] h-[33px] flex items-center justify-center">
+                    <span className="font-ms-sans font-normal text-[16px] leading-[30px] text-[#DFDFDF] text-center">
+                      {points.toFixed(2)}
+                    </span>
+                  </div>
+                </div>
               </div>
-              <span className="text-[#DFDFDF] font-ms-sans text-[14px]">
-                {points.toFixed(2)}
-              </span>
             </div>
             <div className="block md:hidden">
               <button

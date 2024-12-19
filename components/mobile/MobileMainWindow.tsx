@@ -187,10 +187,10 @@ export default function MobileMainWindow() {
         <div className="h-[36px] flex-shrink-0">
           <div className="flex justify-between items-center w-full h-full px-4">
             <div className="flex items-center gap-2">
-              <span className="font-ms-sans text-[16px] leading-[34px] text-white">
+              <span className="font-ms-sans text-[16px] leading-[33px] text-[#FEFEFE] font-bold">
                 Volume
               </span>
-              <span className="font-ms-sans text-[16px] leading-[34px] text-white">
+              <span className="font-ms-sans text-[16px] leading-[33px] text-[#FEFEFE] font-bold">
                 {isVaultLoading ? "Loading..." : `${totalVolume.toFixed(4)} SOL`}
               </span>
             </div>

@@ -27,7 +27,7 @@ export default function TokenItem({ token, index, onSelect, isSelected, isMobile
         setImageError(true)
         setIsLoading(false)
       }
-    }, 5000)
+    }, 10000)
 
     return () => clearTimeout(timeoutId)
   }, [token.imageUri, isLoading])

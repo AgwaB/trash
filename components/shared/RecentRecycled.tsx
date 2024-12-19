@@ -11,7 +11,7 @@ export default function RecentRecycled() {
 
   if (isLoading) {
     return (
-      <div className="h-[60px] bg-[#26243B] border-b border-[#1A1828] flex items-center justify-center">
+      <div className="h-[40px] bg-[#26243B] border-b border-[#1A1828] flex items-center justify-center">
         <span className="font-ms-sans text-[14px] text-[#FFBF57]">
           Loading...
         </span>
@@ -21,7 +21,7 @@ export default function RecentRecycled() {
 
   if (!recentRecycle) {
     return (
-      <div className="h-[60px] bg-[#26243B] border-b border-[#1A1828] flex items-center justify-center">
+      <div className="h-[40px] bg-[#26243B] border-b border-[#1A1828] flex items-center justify-center">
         <span className="font-ms-sans text-[14px] text-[#FFBF57]">
           No recent activity
         </span>
@@ -38,7 +38,7 @@ export default function RecentRecycled() {
   }
 
   return (
-    <div className="h-[60px] bg-[#26243B] border-b border-[#1A1828] flex items-center justify-center gap-2">
+    <div className="h-[40px] bg-[#26243B] border-b border-[#1A1828] flex items-center justify-center gap-2">
       <div className="w-6 h-6 relative">
         <Image
           src={getImageSource()}

@@ -190,16 +190,16 @@ export default function MainWindow() {
         md:max-w-[450px]                      /* 최대 너비는 450px로 제한 */
         md:h-[calc(100vh-120px)]              /* 화면 높이에서 navbar, footer 높이 제외 */
         md:max-h-[600px]                      /* 최대 높이는 600px로 제한 */
-        md:min-h-[400px]                      /* 최소 ���이 설정 */
+        md:min-h-[400px]                      /* 최소 이 설정 */
         flex flex-col
       ">
         <Win98TitleBar className="h-[36px] bg-[#503D9E] text-white flex-shrink-0">
           <div className="flex justify-between items-center w-full">
-            <div className="flex items-center gap-2 ml-2">
-              <span className="font-ms-sans text-[16px] leading-[34px] text-[#0A0A0A]">
+            <div className="flex items-center gap-2 ml-4">
+              <span className="font-ms-sans text-[16px] leading-[33px] text-[#FEFEFE] font-bold">
                 Volume
               </span>
-              <span className="font-ms-sans text-[16px] leading-[34px] text-[#0A0A0A]">
+              <span className="font-ms-sans text-[16px] leading-[33px] text-[#FEFEFE] font-bold">
                 {isVaultLoading ? "Loading..." : `${totalVolume.toFixed(4)} SOL`}
               </span>
             </div>

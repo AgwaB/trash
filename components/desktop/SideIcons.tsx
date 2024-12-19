@@ -2,12 +2,19 @@ import React from 'react'
 import Image from 'next/image'
 
 export default function SideIcons() {
+  const handleXClick = () => {
+    window.open('https://x.com/', '_blank')
+  }
+
   return (
-    <div className="flex flex-col items-center gap-8 pt-8">
-      <div className="flex flex-col items-center gap-1">
+    <div className="flex flex-col items-center gap-10 pt-[56px]">
+      <div 
+        className="flex flex-col items-center gap-1 cursor-pointer hover:opacity-80"
+        onClick={handleXClick}
+      >
         <div className="w-[48px] h-[48px] relative">
           <Image
-            src="/icons/trash-logo.png"
+            src="/icons/x.png"
             alt="Trash.meme"
             fill
             className="object-contain"
@@ -26,18 +33,6 @@ export default function SideIcons() {
           />
         </div>
         <span className="text-white font-ms-sans text-[12px]">Airdrop</span>
-      </div>
-
-      <div className="flex flex-col items-center gap-1">
-        <div className="w-[48px] h-[48px] relative">
-          <Image
-            src="/icons/trash-points.png"
-            alt="Trash Point"
-            fill
-            className="object-contain"
-          />
-        </div>
-        <span className="text-white font-ms-sans text-[12px]">Trash Point</span>
       </div>
     </div>
   )
