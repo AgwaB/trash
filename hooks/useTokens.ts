@@ -1,5 +1,5 @@
 "use client"
-import useSWR from 'swr'
+import useSWR, { mutate as globalMutate } from 'swr'
 import { getSftTokens, getToken2022s, getTokenPrices } from '@/services/token'
 import { Token, TokenType, TokenDescription } from '@/types/token'
 import { useMemo } from 'react'
@@ -95,10 +95,28 @@ export function useTokens(address: string | undefined) {
     tokens,
     isLoading,
     isError: !tokens && !isLoading,
-    mutate: async () => {
-      await mutateBasicTokens(undefined, {
-        revalidate: true
-      })
+    mutate: async (data?: Token[] | ((current: Token[] | null) => Token[] | null)) => {
+      if (data) {
+        // 로컬 상태 직접 업데이트
+        const currentTokens = tokens;
+        const updatedTokens = typeof data === 'function' ? data(currentTokens) : data;
+        
+        // 모든 데이터 새로고침
+        await Promise.all([
+          mutateBasicTokens(undefined, { revalidate: true }),
+          globalMutate(`token-prices/${basicTokens?.map(t => t.id).join(',')}`),
+          globalMutate('token-labels')
+        ]);
+
+        return updatedTokens;
+      }
+
+      // 모든 데이터 새로고침
+      await Promise.all([
+        mutateBasicTokens(undefined, { revalidate: true }),
+        basicTokens && globalMutate(`token-prices/${basicTokens.map(t => t.id).join(',')}`),
+        globalMutate('token-labels')
+      ]);
     }
   }
 } 

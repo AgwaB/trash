@@ -40,12 +40,13 @@ export function useRecentRecycles() {
           return
         }
 
-        const rawAmount = BigInt(latestRecycle.tokenAmount)
-        const decimals = BigInt(token.decimals || 0)
-        const divisor = BigInt(10) ** decimals
-        const amount = Number(rawAmount / divisor) + 
-          Number(rawAmount % divisor) / Number(divisor)
-
+        // TODO: recycleData 업데이트 후 처리
+        // const rawAmount = BigInt(latestRecycle.tokenAmount)
+        // const decimals = BigInt(token.decimals || 0)
+        // const divisor = BigInt(10) ** decimals
+        // const amount = Number(rawAmount / divisor) + 
+        //   Number(rawAmount % divisor) / Number(divisor)
+        const amount = 0
         const newRecycle = {
           amount,
           symbol: token.symbol,

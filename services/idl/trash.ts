@@ -5,7 +5,7 @@
  * IDL can be found at `target/idl/trash.json`.
  */
 export type Trash = {
-  "address": "7eF63fM1QUC12W4UGCpJvLNd9qebQn9AkuaLYAgZu5ek",
+  "address": "5aQg4utyAeyokZSJe5ithgAz3Cw13o9Y43spG3cQqWSb",
   "metadata": {
     "name": "trash",
     "version": "0.1.0",
@@ -13,6 +13,58 @@ export type Trash = {
     "description": "Created with Anchor"
   },
   "instructions": [
+    {
+      "name": "initUserStats",
+      "discriminator": [
+        177,
+        113,
+        20,
+        232,
+        181,
+        87,
+        120,
+        62
+      ],
+      "accounts": [
+        {
+          "name": "user",
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "userStats",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  85,
+                  83,
+                  69,
+                  82,
+                  95,
+                  83,
+                  84,
+                  65,
+                  84,
+                  83
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "user"
+              }
+            ]
+          }
+        },
+        {
+          "name": "systemProgram",
+          "address": "11111111111111111111111111111111"
+        }
+      ],
+      "args": []
+    },
     {
       "name": "initialize",
       "discriminator": [
@@ -88,6 +140,45 @@ export type Trash = {
       ],
       "accounts": [
         {
+          "name": "programAuthority",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  65,
+                  85,
+                  84,
+                  72,
+                  79,
+                  82,
+                  73,
+                  84,
+                  89
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "programWsolAccount",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  87,
+                  83,
+                  79,
+                  76
+                ]
+              }
+            ]
+          }
+        },
+        {
           "name": "user",
           "writable": true,
           "signer": true
@@ -120,11 +211,11 @@ export type Trash = {
           }
         },
         {
-          "name": "mint"
+          "name": "tokenMint"
         },
         {
-          "name": "userTokenAccount",
-          "writable": true
+          "name": "solMint",
+          "address": "So11111111111111111111111111111111111111112"
         },
         {
           "name": "vault",
@@ -140,31 +231,6 @@ export type Trash = {
                   76,
                   84
                 ]
-              }
-            ]
-          }
-        },
-        {
-          "name": "vaultTokenAccount",
-          "writable": true,
-          "pda": {
-            "seeds": [
-              {
-                "kind": "const",
-                "value": [
-                  84,
-                  82,
-                  69,
-                  65,
-                  83,
-                  85,
-                  82,
-                  89
-                ]
-              },
-              {
-                "kind": "account",
-                "path": "mint"
               }
             ]
           }
@@ -186,7 +252,7 @@ export type Trash = {
               },
               {
                 "kind": "account",
-                "path": "mint"
+                "path": "tokenMint"
               }
             ]
           }
@@ -225,7 +291,12 @@ export type Trash = {
           }
         },
         {
-          "name": "tokenProgram"
+          "name": "jupiterProgram",
+          "address": "JUP6LkbZbjS1jKKwapdHNy74zcZ3tLUZoi5QNyVTaV4"
+        },
+        {
+          "name": "tokenProgram",
+          "address": "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA"
         },
         {
           "name": "systemProgram",
@@ -234,12 +305,12 @@ export type Trash = {
       ],
       "args": [
         {
-          "name": "tokenAmount",
-          "type": "u64"
-        },
-        {
           "name": "timestamp",
           "type": "i64"
+        },
+        {
+          "name": "jupiterRoute",
+          "type": "bytes"
         }
       ]
     },
@@ -370,16 +441,16 @@ export type Trash = {
       ]
     },
     {
-      "name": "withdrawSol",
+      "name": "withdrawSolFromAuthority",
       "discriminator": [
-        145,
-        131,
-        74,
-        136,
+        133,
         65,
-        137,
-        42,
-        38
+        16,
+        167,
+        176,
+        104,
+        196,
+        105
       ],
       "accounts": [
         {
@@ -389,6 +460,87 @@ export type Trash = {
           "relations": [
             "admin"
           ]
+        },
+        {
+          "name": "receiver",
+          "writable": true
+        },
+        {
+          "name": "admin",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  65,
+                  68,
+                  77,
+                  73,
+                  78
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "programAuthority",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  65,
+                  85,
+                  84,
+                  72,
+                  79,
+                  82,
+                  73,
+                  84,
+                  89
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "systemProgram",
+          "address": "11111111111111111111111111111111"
+        }
+      ],
+      "args": [
+        {
+          "name": "amount",
+          "type": "u64"
+        }
+      ]
+    },
+    {
+      "name": "withdrawSolFromVault",
+      "discriminator": [
+        125,
+        47,
+        97,
+        57,
+        61,
+        245,
+        60,
+        158
+      ],
+      "accounts": [
+        {
+          "name": "authority",
+          "writable": true,
+          "signer": true,
+          "relations": [
+            "admin"
+          ]
+        },
+        {
+          "name": "receiver",
+          "writable": true
         },
         {
           "name": "admin",
@@ -526,6 +678,26 @@ export type Trash = {
       "code": 6003,
       "name": "invalidAmount",
       "msg": "Invalid amount"
+    },
+    {
+      "code": 6004,
+      "name": "invalidJupiterProgram",
+      "msg": "Invalid Jupiter program"
+    },
+    {
+      "code": 6005,
+      "name": "swapFailed",
+      "msg": "Swap failed"
+    },
+    {
+      "code": 6006,
+      "name": "invalidTimestamp",
+      "msg": "Invalid timestamp"
+    },
+    {
+      "code": 6007,
+      "name": "incorrectOwner",
+      "msg": "Incorrect owner"
     }
   ],
   "types": [
@@ -573,10 +745,6 @@ export type Trash = {
           {
             "name": "tokenMint",
             "type": "pubkey"
-          },
-          {
-            "name": "tokenAmount",
-            "type": "u64"
           },
           {
             "name": "solReceived",

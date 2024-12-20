@@ -4,11 +4,17 @@ import Image from 'next/image'
 import { useWallet } from '@solana/wallet-adapter-react'
 import WalletModal from '../shared/WalletModal'
 import { usePoints } from '@/contexts/PointsContext'
+import { Decimal } from 'decimal.js'
 
 export default function MobileNavbar() {
   const { connected, disconnect } = useWallet()
   const [isWalletModalOpen, setIsWalletModalOpen] = useState(false)
   const { points } = usePoints()
+
+  const formattedPoints = new Decimal(points)
+    .div(new Decimal(10).pow(9))
+    .toFixed(2)
+    .replace(/\.?0+$/, '');
 
   const handleWalletClick = () => {
     if (connected) {
@@ -50,7 +56,7 @@ export default function MobileNavbar() {
                 />
               </div>
               <span className="text-[#DFDFDF] leading-8 font-ms-sans font-bold text-[12px]">
-                {points}
+                {formattedPoints}
               </span>
             </div>
             <button

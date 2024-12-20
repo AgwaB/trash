@@ -4,14 +4,19 @@ import Image from 'next/image'
 import { useWallet } from '@solana/wallet-adapter-react'
 import WalletModal from '../shared/WalletModal'
 import WalletButton from './WalletButton'
-import { useUserStats } from '@/hooks/useUserStats'
+import { usePoints } from '@/contexts/PointsContext'
+import { Decimal } from 'decimal.js'
 
 export default function Navbar() {
   const { publicKey } = useWallet()
   const [isWalletModalOpen, setIsWalletModalOpen] = useState(false)
   const [isLogoPressed, setIsLogoPressed] = useState(false)
-  const userStats = useUserStats(publicKey?.toString())
-  const points = userStats ? Number(userStats.totalPointsEarned) : 0
+  const { points } = usePoints()
+
+  const formattedPoints = new Decimal(points)
+    .div(new Decimal(10).pow(9))
+    .toDecimalPlaces(2, Decimal.ROUND_FLOOR)
+    .toString()
 
   const handleLogoClick = () => {
     window.location.reload()
@@ -19,7 +24,7 @@ export default function Navbar() {
 
   return (
     <>
-      <nav className="h-[50px] bg-[#503D9E] border-b border-[#6E6BA7] md:border-black">
+      <nav className="h-[60px] bg-[#504DA7] border-b border-[#6E6BA7]">
         <div className="flex justify-between items-center h-full px-4 md:px-12">
           {/* Left side - Logo */}
           <button
@@ -71,7 +76,7 @@ export default function Navbar() {
                   {/* Points value */}
                   <div className="w-[62px] h-[33px] flex items-center justify-center">
                     <span className="font-ms-sans font-normal text-[16px] leading-[30px] text-[#DFDFDF] text-center">
-                      {points.toFixed(2)}
+                      {formattedPoints}
                     </span>
                   </div>
                 </div>

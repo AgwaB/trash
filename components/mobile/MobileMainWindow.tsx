@@ -11,12 +11,15 @@ import { useTokens } from '@/hooks/useTokens'
 import { useVaultInfo } from '@/hooks/useVaultInfo'
 import Toast from '../shared/Toast'
 import { createRecycleTokenTransaction } from '@/services/contract'
-import { Connection } from '@solana/web3.js'
+import { Connection, VersionedTransaction } from '@solana/web3.js'
 import { RPC_ENDPOINT } from '@/config'
-import { Transaction } from '@solana/web3.js'
 import LoadingModal from '../shared/LoadingModal'
+import { Decimal } from 'decimal.js';
 
-const connection = new Connection(RPC_ENDPOINT)
+const connection = new Connection(RPC_ENDPOINT, {
+  commitment: 'confirmed',
+  confirmTransactionInitialTimeout: 60000,
+})
 
 export default function MobileMainWindow() {
   const { connected, publicKey, signTransaction } = useWallet()
@@ -63,78 +66,71 @@ export default function MobileMainWindow() {
   }
 
   const handleRecycleClick = async () => {
-    if (!connected || selectedTokens.length === 0 || !publicKey || !signTransaction) return
+    if (!connected || selectedTokens.length === 0 || !publicKey || !signTransaction) return;
 
     try {
-      // 선택된 토큰들 가져오기
-      const selectedTokenData = tokens?.filter(token => selectedTokens.includes(token.id))
-      if (!selectedTokenData) return
+      setIsRecycling(true);
 
-      // 리사이클할 토큰 목록 생성
+      const selectedTokenData = tokens?.filter(token => selectedTokens.includes(token.id));
+      if (!selectedTokenData) return;
+
       const recycleList = selectedTokenData
         .filter(token => Number(token.amount) > 0)
         .map(token => {
-          const amount = BigInt(token.amount)
-          const decimals = BigInt(token.decimals || 0)
-          const multiplier = BigInt(10) ** decimals
-          const rawAmount = amount * multiplier
+          const amount = new Decimal(token.amount);
+          const multiplier = new Decimal(10).pow(token.decimals || 0);
+          const rawAmount = amount.mul(multiplier);
           
           return {
             mint: token.id,
-            amount: rawAmount.toString()
+            amount: rawAmount.toFixed(0)
           }
         })
 
-      if (recycleList.length === 0) return
-
-      // 트랜잭션 생성
-      const result = await createRecycleTokenTransaction(publicKey.toString(), recycleList)
+      const result = await createRecycleTokenTransaction(publicKey.toString(), recycleList);
       if (!result.success || !result.serializedTransaction) {
-        throw new Error(result.error || "트랜잭션 생성에 실패했습니다")
+        throw new Error(result.error || "트랜잭션 생성에 실패했습니다");
       }
 
-      // base64 문자열을 Transaction으로 변환
-      const tx = Transaction.from(Buffer.from(result.serializedTransaction, 'base64'))
-      
+      const tx = VersionedTransaction.deserialize(
+        Buffer.from(result.serializedTransaction, 'base64')
+      );
+
       // 트랜잭션 서명
-      const signedTx = await signTransaction(tx)
-      
-      // 트랜잭션 전송 전에 모달 표시
-      setIsRecycling(true)
+      const signedTx = await signTransaction(tx);
 
-      try {
-        // 트랜잭션 전송
-        const signature = await connection.sendRawTransaction(signedTx.serialize())
-        
-        // 트랜잭션 확인 대기
-        await connection.confirmTransaction(signature)
-        
-        // 트랜잭션이 성공적으로 완료됨
-        setSelectedTokens([])
-        setToast({
-          message: "리사이클이 완료되었습니다",
-          type: 'success'
-        })
+      // 트랜잭션 전송
+      const txId = await connection.sendTransaction(signedTx, {
+        skipPreflight: true,
+        maxRetries: 3,
+      });
 
-        // 토큰 목록 새로고침
-        await mutate()
-      } catch (error) {
-        throw error
-      } finally {
-        // 모달과 로딩 상태 해제
-        setIsRecycling(false)
-      }
+      // 트랜잭션 확인 대기
+      await connection.confirmTransaction({
+        signature: txId,
+        blockhash: tx.message.recentBlockhash,
+        lastValidBlockHeight: (await connection.getLatestBlockhash()).lastValidBlockHeight
+      });
 
-    } catch (error) {
-      console.error('토큰 리사이클 중 오류:', error)
       setToast({
-        message: error instanceof Error ? error.message : "리사이클에 실패했습니다",
-        type: 'error'
-      })
-      // 에러 발생 시에도 상태 초기화
-      setIsRecycling(false)
+        message: "Recycle successful!",
+        type: "success"
+      });
+
+      // 트랜잭션이 확인된 후 토큰 목록 새로고침
+      await mutate();
+      
+    } catch (error: any) {
+      console.error("Recycle failed:", error);
+      setToast({
+        message: error.message || "Recycle failed",
+        type: "error"
+      });
+    } finally {
+      setIsRecycling(false);
+      setSelectedTokens([]);
     }
-  }
+  };
 
   const renderContent = () => {
     if (!connected) {
@@ -163,8 +159,7 @@ export default function MobileMainWindow() {
     // 토큰 필터링
     const validTokens = tokens?.filter(token => 
       Number(token.amount) > 0
-      // && (token.solValue && Number(token.solValue) > 0)
-      // TODO: and price > 0
+      && (token.solValue && Number(token.solValue) > 0)
     )
     
     if (!validTokens || validTokens.length === 0) return <EmptyView />

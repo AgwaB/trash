@@ -8,6 +8,9 @@ dependencies:
   '@coral-xyz/anchor':
     specifier: ^0.30.1
     version: 0.30.1
+  '@jup-ag/api':
+    specifier: ^6.0.32
+    version: 6.0.32
   '@metaplex-foundation/js':
     specifier: ^0.20.1
     version: 0.20.1(arweave@1.15.5)(fastestsmallesttextencoderdecoder@1.0.22)(typescript@5.7.2)
@@ -2475,6 +2478,10 @@ packages:
     dependencies:
       '@jridgewell/resolve-uri': 3.1.2
       '@jridgewell/sourcemap-codec': 1.5.0
+
+  /@jup-ag/api@6.0.32:
+    resolution: {integrity: sha512-MkNmYhTbf8zmT52xpM/f7pfZJTlAz0G+juFqBJo0iWZ52stl6EBDKTUCphUQkn153pkUqsLzvFW/q5EjarUI5A==}
+    dev: false
 
   /@keystonehq/alias-sampling@0.1.2:
     resolution: {integrity: sha512-5ukLB3bcgltgaFfQfYKYwHDUbwHicekYo53fSEa7xhVkAEqsA74kxdIwoBIURmGUtXe3EVIRm4SYlgcrt2Ri0w==}
