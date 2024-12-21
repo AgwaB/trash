@@ -282,7 +282,7 @@ async function getJupiterInstructions(
             outputMint: NATIVE_MINT,
             amount: amount,
             dynamicSlippage: "true",
-            onlyDirectRoutes: "true",
+            onlyDirectRoutes: "false",
             swapMode: "ExactIn",
             asLegacyTransaction: "false",
             maxAccounts: "64",
@@ -297,6 +297,9 @@ async function getJupiterInstructions(
         );
       }
 
+      quoteResponse.swapType = "aggregator"
+      console.log(`quoteResponse: ${JSON.stringify(quoteResponse)}`)
+
       // Swap Instructions 가져오기
       const swapResult = await (
         await fetch('https://quote-api.jup.ag/v6/swap-instructions', {
@@ -306,8 +309,10 @@ async function getJupiterInstructions(
             quoteResponse,
             userPublicKey: userAddress,
             destinationTokenAccount: userWsolAccountPDA.toString(),
-            useSharedAccounts: true,
-            wrapUnwrapSOL: true,
+            allowOptimizedWrappedSolTokenAccount: true,
+            asLegacyTransaction: false,
+            correctLastValidBlockHeight: true,
+            wrapAndUnwrapSol: true,
             dynamicComputeUnitLimit: true,
             prioritizationFeeLamports: {
               priorityLevelWithMaxLamports: {
