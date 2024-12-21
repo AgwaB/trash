@@ -14,6 +14,333 @@ export type Trash = {
   },
   "instructions": [
     {
+      "name": "createRecycleProposal",
+      "discriminator": [
+        7,
+        218,
+        24,
+        95,
+        33,
+        44,
+        135,
+        203
+      ],
+      "accounts": [
+        {
+          "name": "user",
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "tokenMint"
+        },
+        {
+          "name": "solMint",
+          "address": "So11111111111111111111111111111111111111112"
+        },
+        {
+          "name": "recycleProposal",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  82,
+                  69,
+                  67,
+                  89,
+                  67,
+                  76,
+                  69,
+                  95,
+                  80,
+                  82,
+                  79,
+                  80,
+                  79,
+                  83,
+                  65,
+                  76
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "user"
+              },
+              {
+                "kind": "account",
+                "path": "tokenMint"
+              },
+              {
+                "kind": "arg",
+                "path": "timestamp"
+              }
+            ]
+          }
+        },
+        {
+          "name": "programAuthority",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  65,
+                  85,
+                  84,
+                  72,
+                  79,
+                  82,
+                  73,
+                  84,
+                  89
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "userWsolAccount",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  85,
+                  83,
+                  69,
+                  82,
+                  95,
+                  87,
+                  83,
+                  79,
+                  76
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "user"
+              }
+            ]
+          }
+        },
+        {
+          "name": "tokenProgram",
+          "address": "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA"
+        },
+        {
+          "name": "systemProgram",
+          "address": "11111111111111111111111111111111"
+        }
+      ],
+      "args": [
+        {
+          "name": "tokenAmount",
+          "type": "u64"
+        },
+        {
+          "name": "timestamp",
+          "type": "i64"
+        }
+      ]
+    },
+    {
+      "name": "executeRecycleProposal",
+      "discriminator": [
+        153,
+        9,
+        201,
+        75,
+        194,
+        228,
+        18,
+        36
+      ],
+      "accounts": [
+        {
+          "name": "user",
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "userStats",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  85,
+                  83,
+                  69,
+                  82,
+                  95,
+                  83,
+                  84,
+                  65,
+                  84,
+                  83
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "user"
+              }
+            ]
+          }
+        },
+        {
+          "name": "tokenMint"
+        },
+        {
+          "name": "recycleProposal",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  82,
+                  69,
+                  67,
+                  89,
+                  67,
+                  76,
+                  69,
+                  95,
+                  80,
+                  82,
+                  79,
+                  80,
+                  79,
+                  83,
+                  65,
+                  76
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "user"
+              },
+              {
+                "kind": "account",
+                "path": "tokenMint"
+              },
+              {
+                "kind": "arg",
+                "path": "timestamp"
+              }
+            ]
+          }
+        },
+        {
+          "name": "programAuthority",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  65,
+                  85,
+                  84,
+                  72,
+                  79,
+                  82,
+                  73,
+                  84,
+                  89
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "userWsolAccount",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  85,
+                  83,
+                  69,
+                  82,
+                  95,
+                  87,
+                  83,
+                  79,
+                  76
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "user"
+              }
+            ]
+          }
+        },
+        {
+          "name": "vault",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  86,
+                  65,
+                  85,
+                  76,
+                  84
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "label",
+          "optional": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  76,
+                  65,
+                  66,
+                  69,
+                  76
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "tokenMint"
+              }
+            ]
+          }
+        },
+        {
+          "name": "tokenProgram",
+          "address": "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA"
+        },
+        {
+          "name": "systemProgram",
+          "address": "11111111111111111111111111111111"
+        }
+      ],
+      "args": [
+        {
+          "name": "timestamp",
+          "type": "i64"
+        }
+      ]
+    },
+    {
       "name": "initUserStats",
       "discriminator": [
         177,
@@ -632,6 +959,19 @@ export type Trash = {
       ]
     },
     {
+      "name": "recycleProposal",
+      "discriminator": [
+        121,
+        236,
+        45,
+        55,
+        17,
+        60,
+        41,
+        58
+      ]
+    },
+    {
       "name": "userStats",
       "discriminator": [
         176,
@@ -698,6 +1038,16 @@ export type Trash = {
       "code": 6007,
       "name": "incorrectOwner",
       "msg": "Incorrect owner"
+    },
+    {
+      "code": 6008,
+      "name": "invalidTokenAmount",
+      "msg": "Invalid token amount"
+    },
+    {
+      "code": 6009,
+      "name": "alreadyExecuted",
+      "msg": "Already executed"
     }
   ],
   "types": [
@@ -756,6 +1106,46 @@ export type Trash = {
           },
           {
             "name": "timestamp",
+            "type": "i64"
+          }
+        ]
+      }
+    },
+    {
+      "name": "recycleProposal",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "user",
+            "type": "pubkey"
+          },
+          {
+            "name": "tokenMint",
+            "type": "pubkey"
+          },
+          {
+            "name": "tokenAmount",
+            "type": "u64"
+          },
+          {
+            "name": "createdAt",
+            "type": "i64"
+          },
+          {
+            "name": "isExecuted",
+            "type": "bool"
+          },
+          {
+            "name": "solReceived",
+            "type": "u64"
+          },
+          {
+            "name": "pointsEarned",
+            "type": "u64"
+          },
+          {
+            "name": "executedAt",
             "type": "i64"
           }
         ]

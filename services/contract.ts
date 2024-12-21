@@ -1,11 +1,10 @@
 // services/contract.ts
 "use server"
-import { Connection, SystemProgram, Transaction, PublicKey, TransactionMessage, VersionedTransaction, AddressLookupTableAccount, TransactionInstruction } from '@solana/web3.js'
+import { Connection, SystemProgram, PublicKey, TransactionMessage, VersionedTransaction, AddressLookupTableAccount, TransactionInstruction, ComputeBudgetProgram } from '@solana/web3.js'
 import { Program, AnchorProvider, BN } from '@coral-xyz/anchor'
 import { Trash } from './idl/trash'
 import IDL from './idl/trash.json'
 import { TOKEN_PROGRAM_ID } from '@solana/spl-token'
-import { getAssociatedTokenAddress } from '@solana/spl-token'
 import { Wallet } from '@coral-xyz/anchor'
 import { PROGRAM_ID, RPC_ENDPOINT, SEEDS } from '@/config'
 
@@ -180,10 +179,11 @@ interface RecycleTokenInput {
 
 async function prepareRecycleAccounts(
   userPubkey: PublicKey,
+  timestamp: BN,
   recycleList: RecycleTokenInput[],
   program: Program<Trash>
 ) {
-  // 1. 모든 필요한 PDA 계정들 한번에 생성
+  // 기존 PDA 계정들
   const [userStatsPDA] = PublicKey.findProgramAddressSync(
     [Buffer.from(SEEDS.USER_STATS), userPubkey.toBuffer()],
     PROGRAM_ID
@@ -204,7 +204,47 @@ async function prepareRecycleAccounts(
     PROGRAM_ID
   );
 
-  // 2. userStats 초기화 확인
+  const [userWsolAccountPDA] = PublicKey.findProgramAddressSync(
+    [Buffer.from("USER_WSOL"), userPubkey.toBuffer()],
+    PROGRAM_ID
+  );
+
+  // 새로운 PDA 계정들
+  const recycleProposals = await Promise.all(
+    recycleList.map(async ({ mint }) => {
+      const mintPubkey = new PublicKey(mint);
+      const [recycleProposalPDA] = PublicKey.findProgramAddressSync(
+        [
+          Buffer.from("RECYCLE_PROPOSAL"),
+          userPubkey.toBuffer(),
+          mintPubkey.toBuffer(),
+          timestamp.toArrayLike(Buffer, 'le', 8)
+        ],
+        PROGRAM_ID
+      );
+
+      const [labelPDA] = PublicKey.findProgramAddressSync(
+        [Buffer.from(SEEDS.LABEL), mintPubkey.toBuffer()],
+        PROGRAM_ID
+      );
+
+      let labelAccount;
+      try {
+        const labelInfo = await program.account.label.fetch(labelPDA);
+        labelAccount = labelInfo && labelInfo.name !== '' ? labelPDA : PROGRAM_ID;
+      } catch (e) {
+        labelAccount = PROGRAM_ID;
+      }
+
+      return {
+        mintPubkey,
+        recycleProposalPDA,
+        labelAccount,
+      };
+    })
+  );
+
+  // userStats 초기화 확인
   let initIx = null;
   try {
     await program.account.userStats.fetch(userStatsPDA);
@@ -212,44 +252,23 @@ async function prepareRecycleAccounts(
     initIx = await initializeUserStats(userPubkey, program);
   }
 
-  // 3. 각 토큰별 라벨 정보 준비
-  const tokenAccounts = await Promise.all(recycleList.map(async ({ mint }) => {
-    const mintPubkey = new PublicKey(mint);
-    const [labelPDA] = PublicKey.findProgramAddressSync(
-      [Buffer.from(SEEDS.LABEL), mintPubkey.toBuffer()],
-      PROGRAM_ID
-    );
-
-    let labelAccount;
-    try {
-      const labelInfo = await program.account.label.fetch(labelPDA);
-      labelAccount = labelInfo && labelInfo.name !== '' ? labelPDA : PROGRAM_ID;
-    } catch (e) {
-      labelAccount = PROGRAM_ID;
-    }
-
-    return { 
-      mintPubkey, 
-      labelAccount,
-    };
-  }));
-
-  return { 
-    userStatsPDA, 
+  return {
+    userStatsPDA,
     vaultPDA,
     programWsolAccount,
     programAuthority,
-    initIx, 
-    tokenAccounts 
+    recycleProposals,
+    userWsolAccountPDA,
+    initIx
   };
 }
 
-async function getJupiterInstructions(recycleList: RecycleTokenInput[], userAddress: string) {
+async function getJupiterInstructions(
+  recycleList: RecycleTokenInput[], 
+  userAddress: string,
+  userWsolAccountPDA: PublicKey
+) {
   const NATIVE_MINT = "So11111111111111111111111111111111111111112";
-  const [programWsolAccount] = PublicKey.findProgramAddressSync(
-    [Buffer.from("WSOL")],
-    PROGRAM_ID
-  );
 
   // 모든 토큰에 대해 병렬로 Jupiter API 호출
   const jupiterResults = await Promise.all(recycleList.map(async ({ mint, amount }) => {
@@ -264,7 +283,7 @@ async function getJupiterInstructions(recycleList: RecycleTokenInput[], userAddr
           onlyDirectRoutes: "true",
           swapMode: "ExactIn",
           asLegacyTransaction: "false",
-          maxAccounts: "8",
+          maxAccounts: "64",
         })
       )
     ).json();
@@ -281,7 +300,7 @@ async function getJupiterInstructions(recycleList: RecycleTokenInput[], userAddr
         body: JSON.stringify({
           quoteResponse,
           userPublicKey: userAddress,
-          destinationTokenAccount: programWsolAccount.toString(),
+          destinationTokenAccount: userWsolAccountPDA.toString(),
           useSharedAccounts: true,
           wrapUnwrapSOL: true,
           dynamicComputeUnitLimit: true,
@@ -318,38 +337,67 @@ export async function createRecycleTokenTransaction(
     const timestamp = new BN(Math.floor(Date.now() / 1000));
 
     // 1. 모든 계정 정보 미리 준비
-    const { 
-      userStatsPDA, 
-      vaultPDA,
-      programWsolAccount,
-      programAuthority,
-      initIx, 
-      tokenAccounts 
-    } = await prepareRecycleAccounts(
+    const accounts = await prepareRecycleAccounts(
       userPubkey,
+      timestamp,
       recycleList,
       program
     );
 
-    const recycleDataPDA = PublicKey.findProgramAddressSync(
-      [
-        Buffer.from(SEEDS.RECYCLE_DATA),
-        userPubkey.toBuffer(),
-        timestamp.toArrayLike(Buffer, 'le', 8)
-      ],
-      PROGRAM_ID
-    )[0];
+    // 2. Instructions 생성
+    let instructions = accounts.initIx ? [accounts.initIx] : [];
+    let jupiterResults = [];
+    let allLookupTableAddresses = new Set<string>();
 
-    // 2. Jupiter API 호출
-    const jupiterResults = await getJupiterInstructions(recycleList, userAddress);
+    // ComputeBudget instruction 추가
+    const modifyComputeUnits = ComputeBudgetProgram.setComputeUnitLimit({ 
+      units: 1_400_000
+    });
+    instructions.push(modifyComputeUnits);
 
-    // 3. Instructions 생성
-    let instructions = initIx ? [initIx] : [];
-
+    // 각 토큰에 대해 처리
     for (let i = 0; i < recycleList.length; i++) {
-      const { mintPubkey, labelAccount } = tokenAccounts[i];
-      const { swapResult } = jupiterResults[i];
-      const { swapInstruction } = swapResult;
+      const { mint, amount } = recycleList[i];
+      const {
+        mintPubkey,
+        recycleProposalPDA,
+        labelAccount
+      } = accounts.recycleProposals[i];
+
+      // Create Proposal Instruction
+      const createProposalIx = await program.methods
+        .createRecycleProposal(
+          new BN(amount),
+          timestamp
+        )
+        .accounts({
+          user: userPubkey,
+          tokenMint: mintPubkey,
+          solMint: new PublicKey("So11111111111111111111111111111111111111112"),
+          recycleProposal: recycleProposalPDA,
+          programAuthority: accounts.programAuthority,
+          userWsolAccount: accounts.userWsolAccountPDA,
+          tokenProgram: TOKEN_PROGRAM_ID,
+          systemProgram: SystemProgram.programId,
+        } as any)
+        .instruction();
+
+      instructions.push(createProposalIx);
+
+      // Jupiter Swap Instructions
+      const jupiterResult = await getJupiterInstructions(
+        [{ mint, amount }], 
+        userAddress,
+        accounts.userWsolAccountPDA
+      );
+      jupiterResults.push(jupiterResult[0]);
+
+      // Lookup table addresses 수집
+      jupiterResult[0].swapResult.addressLookupTableAddresses.forEach((address: string) => {
+        allLookupTableAddresses.add(address);
+      });
+
+      const { swapInstruction } = jupiterResult[0].swapResult;
 
       const swapIx = new TransactionInstruction({
         programId: new PublicKey(swapInstruction.programId),
@@ -361,36 +409,32 @@ export async function createRecycleTokenTransaction(
         data: Buffer.from(swapInstruction.data, "base64"),
       });
 
-      const recycleTokenIx = await program.methods
-        .recycleToken(timestamp, swapIx.data)
+      instructions.push(swapIx);
+
+      // Execute Proposal Instruction
+      const executeProposalIx = await program.methods
+        .executeRecycleProposal(timestamp)
         .accounts({
-          programAuthority,
-          programWsolAccount,
           user: userPubkey,
-          userStats: userStatsPDA,
+          userStats: accounts.userStatsPDA,
           tokenMint: mintPubkey,
-          solMint: new PublicKey("So11111111111111111111111111111111111111112"),
-          vault: vaultPDA,
+          recycleProposal: recycleProposalPDA,
+          programAuthority: accounts.programAuthority,
+          userWsolAccount: accounts.userWsolAccountPDA,
+          vault: accounts.vaultPDA,
           label: labelAccount,
-          recycleData: recycleDataPDA,
-          jupiterProgram: new PublicKey("JUP6LkbZbjS1jKKwapdHNy74zcZ3tLUZoi5QNyVTaV4"),
           tokenProgram: TOKEN_PROGRAM_ID,
-          systemProgram: SystemProgram.programId
+          systemProgram: SystemProgram.programId,
         } as any)
-        .remainingAccounts(swapInstruction.accounts.map((account: any) => ({
-          pubkey: new PublicKey(account.pubkey),
-          isSigner: account.isSigner,
-          isWritable: account.isWritable
-        })))
         .instruction();
 
-      instructions.push(recycleTokenIx);
+      instructions.push(executeProposalIx);
     }
 
-    // 4. 트랜잭션 구성
-    const lastJupiterResult = jupiterResults[jupiterResults.length - 1];
+    // 3. 트랜잭션 구성
+    // 모든 lookup table 계정 가져오기
     const addressLookupTableAccounts = await Promise.all(
-      lastJupiterResult.swapResult.addressLookupTableAddresses.map(async (address: string) => {
+      Array.from(allLookupTableAddresses).map(async (address: string) => {
         const accountInfo = await connection.getAccountInfo(new PublicKey(address));
         if (!accountInfo) return null;
         return new AddressLookupTableAccount({
@@ -495,7 +539,7 @@ export async function getAllLabels() {
           label.mint.toString(),
           {
             description: label.name,
-            multiplier: label.multiplier
+            multiplier: label.multiplier.toString()
           }
         ]
       })

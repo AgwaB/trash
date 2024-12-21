@@ -4,6 +4,7 @@ import MainWindow from '../MainWindow'
 import SideIcons from '../SideIcons'
 import Footer from '../Footer'
 import RecentRecycled from '@/components/shared/RecentRecycled'
+
 export default function DesktopLayout() {
   return (
     <div className="flex flex-col h-screen bg-[#0A0A0A]">

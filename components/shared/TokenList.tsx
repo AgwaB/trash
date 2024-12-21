@@ -51,7 +51,6 @@ export default function TokenList({
 
   useEffect(() => {
     const points = calculatePoints(tokens, selectedTokens)
-    console.log(`calculatePoints: ${points}`)
     onPointsChange(points)
   }, [selectedTokens, tokens, onPointsChange])
 

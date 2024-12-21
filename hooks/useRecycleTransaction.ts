@@ -58,12 +58,12 @@ export function useRecycleTransaction() {
       tx.message.recentBlockhash = blockhash
 
       const signedTx = await signTransaction(tx)
-
+      
       // 4. 트랜잭션 전송 및 확인
       const txId = await connection.sendTransaction(signedTx, {
         skipPreflight: true,
         maxRetries: 3,
-        preflightCommitment: 'processed',
+        preflightCommitment: 'confirmed',
       })
 
       await connection.confirmTransaction({

@@ -49,25 +49,25 @@ interface JupiterPriceResponse {
 }
 
 // 이미지 URI를 가져오는 기본 함수
-export async function getTokenImageUri(token: Token): Promise<string | undefined> {
-  if (!token.uri) return undefined
+export async function getTokenImageUri(tokenId: string, uri?: string): Promise<string | undefined> {
+  if (!uri) return undefined
 
   return unstable_cache(
     async () => {
       try {
-        const response = await fetch(token.uri)
+        const response = await fetch(uri)
         if (!response.ok) {
-          console.error(`Failed to fetch metadata from ${token.uri}: ${response.statusText}`)
+          console.error(`Failed to fetch metadata from ${uri}: ${response.statusText}`)
           return undefined
         }
         const metadata: TokenMetadata = await response.json()
         return metadata.image
       } catch (error) {
-        console.error(`Error fetching token ${token.id} metadata: ${error}`)
+        console.error(`Error fetching token ${tokenId} metadata: ${error}`)
         return undefined
       }
     },
-    [`token-image-uri-${token.id}`], // 토큰 ID별로 캐시 키 생성
+    [`token-image-uri-${tokenId}`], // 토큰 ID별로 캐시 키 생성
     {
       revalidate: false,
       tags: ['token-image-uri']
@@ -109,7 +109,7 @@ export async function getSftTokens(ownerAddress: string) {
         .filter((item): item is any => {
           if (!item) return false
         
-          // NFT 관련 토큰 스탠다드 필터링
+          // NFT 관련 토큰 스탠다��� 필터링
           const nonFungibleTypes = [
             TokenStandard.NonFungible,
             TokenStandard.NonFungibleEdition,
@@ -140,7 +140,7 @@ export async function getSftTokens(ownerAddress: string) {
             type: TokenType.UNKNOWN
           }
 
-          token.imageUri = await getTokenImageUri(token)
+          token.imageUri = await getTokenImageUri(token.id, token.uri)
           return token
         })
     )
@@ -186,7 +186,7 @@ export async function getToken2022s(ownerAddress: string) {
           type: TokenType.UNKNOWN
         }
 
-        token.imageUri = await getTokenImageUri(token)
+        token.imageUri = await getTokenImageUri(token.id, token.uri)
         await sleep(50)
         return token
       })
@@ -294,7 +294,7 @@ export async function fetchToken(mintAddress: string): Promise<Token | undefined
       type: TokenType.UNKNOWN
     }
 
-    token.imageUri = await getTokenImageUri(token)
+    token.imageUri = await getTokenImageUri(token.id, token.uri)
     return token
   } catch (error) {
     console.error('Error fetching token:', error)

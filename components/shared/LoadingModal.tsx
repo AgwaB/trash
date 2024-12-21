@@ -22,7 +22,7 @@ export default function LoadingModal({ isOpen, onClose }: LoadingModalProps) {
         <div className="absolute inset-[3px] border border-[#776EBA]" />
 
         {/* Title bar */}
-        <div className="h-[36px] bg-[#503D9E] px-1.5 py-1.5 flex justify-between items-center">
+        <div className="h-[36px] bg-[#503D9E] px-1.5 py-1.5 flex justify-between items-center pl-2">
           <span className="text-white font-ms-sans">Deleting...</span>
           <button 
             onClick={onClose}

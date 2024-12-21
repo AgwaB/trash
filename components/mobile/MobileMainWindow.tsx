@@ -81,6 +81,8 @@ export default function MobileMainWindow() {
         throw new Error(result.error);
       }
 
+      setIsRecycling(false);
+
       setToast({
         message: "Recycle successful!",
         type: "success"
