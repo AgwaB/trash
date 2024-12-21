@@ -4,26 +4,7 @@ import { getSftTokens, getToken2022s, getTokenPrices } from '@/services/token'
 import { Token, TokenType, TokenDescription } from '@/types/token'
 import { useMemo } from 'react'
 import { getAllLabels } from '@/services/contract'
-
-// 주소 기반으로 토큰 타입 결정
-function getAddressType(address: string, numTypes: number = 4): number {
-  let sum = 0;
-  for (const char of address) {
-    sum += char.charCodeAt(0);
-  }
-  return (sum % numTypes) + 1;
-}
-
-// 토큰 타입에 따른 설명 반환
-function getTokenDescription(typeIndex: number): TokenDescription {
-  switch (typeIndex) {
-    case 1: return TokenDescription.RUG
-    case 2: return TokenDescription.TRASH
-    case 3: return TokenDescription.POOP
-    case 4: return TokenDescription.GARBAGE
-    default: return TokenDescription.TRASH
-  }
-}
+import { getTokenDescription } from '@/utils/tokenDescription'
 
 export function useTokens(address: string | undefined) {
   // 1. 기본 토큰 데이터 가져오기
@@ -74,7 +55,7 @@ export function useTokens(address: string | undefined) {
     return basicTokens.map(token => {
       // 라벨이 있는 경우 해당 라벨 사용, 없는 경우 주소 기반으로 생성
       const label = labels[token.id] || {
-        description: getTokenDescription(getAddressType(token.id)),
+        description: getTokenDescription(token.id),
         multiplier: 1
       }
 

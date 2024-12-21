@@ -1,7 +1,6 @@
 "use client"
-import { useState, useEffect } from 'react'
-import { fetchVaultInfo } from '@/services/contract'
 import useSWR from 'swr'
+import { fetchVaultInfo } from '@/services/contract'
 
 interface VaultInfo {
   totalSolDeposited: string;

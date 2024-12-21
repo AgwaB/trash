@@ -7,7 +7,6 @@ import IDL from './idl/trash.json'
 import { TOKEN_PROGRAM_ID } from '@solana/spl-token'
 import { getAssociatedTokenAddress } from '@solana/spl-token'
 import { Wallet } from '@coral-xyz/anchor'
-import { TokenDescription } from '@/types/token'
 import { PROGRAM_ID, RPC_ENDPOINT, SEEDS } from '@/config'
 
 const connection = new Connection(RPC_ENDPOINT)
@@ -38,7 +37,7 @@ export async function getVaultPDA(): Promise<PublicKey> {
   return pda
 }
 
-export async function getLabelPDA(mint: any): Promise<PublicKey> {
+export async function getLabelPDA(mint: PublicKey): Promise<PublicKey> {
   const [pda] = await PublicKey.findProgramAddressSync(
     [Buffer.from(SEEDS.LABEL), mint.toBuffer()],
     PROGRAM_ID
@@ -46,7 +45,7 @@ export async function getLabelPDA(mint: any): Promise<PublicKey> {
   return pda
 }
 
-export async function getUserStatsPDA(user: any): Promise<PublicKey> {
+export async function getUserStatsPDA(user: PublicKey): Promise<PublicKey> {
   const [pda] = await PublicKey.findProgramAddressSync(
     [Buffer.from(SEEDS.USER_STATS), user.toBuffer()],
     PROGRAM_ID
@@ -54,7 +53,7 @@ export async function getUserStatsPDA(user: any): Promise<PublicKey> {
   return pda
 }
 
-export async function getRecycleDataPDA(user: any, mint: any): Promise<PublicKey> {
+export async function getRecycleDataPDA(user: PublicKey, mint: PublicKey): Promise<PublicKey> {
   const [pda] = await PublicKey.findProgramAddressSync(
     [Buffer.from(SEEDS.RECYCLE_DATA), user.toBuffer(), mint.toBuffer()],
     PROGRAM_ID
@@ -434,7 +433,6 @@ export async function getUserTokenAccounts(userAddress: string) {
       { programId: TOKEN_PROGRAM_ID }
     )
 
-    // 모든 라벨 정보 가져오기
     const labelSystem = await getAllLabels()
 
     const tokenDetails = tokenAccounts.value.map((tokenAccount) => {
@@ -485,32 +483,6 @@ export async function getUserRecycleHistory(userAddress: string) {
   }
 } 
 
-function getAddressType(address: string, numTypes: number = 4): number {
-  let sum = 0;
-  for (const char of address) {
-    sum += char.charCodeAt(0);
-  }
-  
-  const typeIndex = sum % numTypes;
-  return typeIndex + 1;
-}
-
-function getTokenDescription(typeIndex: number): TokenDescription {
-  switch (typeIndex) {
-    case 1:
-      return TokenDescription.RUG
-    case 2:
-      return TokenDescription.TRASH
-    case 3:
-      return TokenDescription.POOP
-    case 4:
-      return TokenDescription.GARBAGE
-    default:
-      return TokenDescription.TRASH
-  }
-}
-
-// 라벨 정보만 가져오는 함수
 export async function getAllLabels() {
   try {
     const program = await getProgram()

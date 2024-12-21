@@ -19,6 +19,7 @@ import { Transaction } from '@solana/web3.js'
 import LoadingModal from '../shared/LoadingModal'
 import { Decimal } from 'decimal.js';
 import { Token } from '@/types/token'
+import { useRecycleTransaction } from '@/hooks/useRecycleTransaction'
 
 const connection = new Connection(RPC_ENDPOINT, {
   commitment: 'processed',
@@ -26,7 +27,7 @@ const connection = new Connection(RPC_ENDPOINT, {
 })
 
 export default function MainWindow() {
-  const { connected, publicKey, wallet, signTransaction } = useWallet()
+  const { connected, publicKey } = useWallet()
   const { points, refreshPoints } = usePoints()
   const [isWalletModalOpen, setIsWalletModalOpen] = useState(false)
   const [isHowItWorksOpen, setIsHowItWorksOpen] = useState(false)
@@ -41,11 +42,12 @@ export default function MainWindow() {
   const { tokens, isLoading, mutate } = useTokens(publicKey?.toString())
   const { vaultInfo, isLoading: isVaultLoading, mutateVaultInfo } = useVaultInfo()
   const [isRecycling, setIsRecycling] = useState(false)
-  const [localTokens, setLocalTokens] = useState<Token[] | null>(null);
+  const [localTokens, setLocalTokens] = useState<Token[] | null>(null)
+  const { executeRecycle } = useRecycleTransaction()
 
   useEffect(() => {
-    setLocalTokens(tokens);
-  }, [tokens]);
+    setLocalTokens(tokens)
+  }, [tokens])
 
   const totalVolume = Number(vaultInfo.totalSolDeposited) / 1e9
 
@@ -76,7 +78,7 @@ export default function MainWindow() {
   }
 
   const handleRecycleClick = async () => {
-    if (!connected || selectedTokens.length === 0 || !publicKey || !signTransaction) return;
+    if (!connected || selectedTokens.length === 0) return;
 
     try {
       setIsRecycling(true);
@@ -84,48 +86,11 @@ export default function MainWindow() {
       const selectedTokenData = tokens?.filter(token => selectedTokens.includes(token.id));
       if (!selectedTokenData) return;
 
-      const recycleList = selectedTokenData
-        .filter(token => Number(token.amount) > 0)
-        .map(token => {
-          const amount = new Decimal(token.amount);
-          const multiplier = new Decimal(10).pow(token.decimals || 0);
-          const rawAmount = amount.mul(multiplier);
-          
-          console.log(`rawAmount: ${rawAmount.toFixed(0)}`)
-          return {
-            mint: token.id,
-            amount: rawAmount.toFixed(0)
-          }
-        });
-
-      if (recycleList.length === 0) return
-
-      const result = await createRecycleTokenTransaction(publicKey.toString(), recycleList);
-      if (!result.success || !result.serializedTransaction) {
-        throw new Error(result.error || "트랜잭션 생성에 실패했습니다");
-      }
-
-      const tx = VersionedTransaction.deserialize(
-        Buffer.from(result.serializedTransaction, 'base64')
-      );
-
-      const { blockhash, lastValidBlockHeight } = await connection.getLatestBlockhash('confirmed');
+      const result = await executeRecycle(selectedTokenData);
       
-      tx.message.recentBlockhash = blockhash;
-
-      const signedTx = await signTransaction(tx);
-
-      const txId = await connection.sendTransaction(signedTx, {
-        skipPreflight: true,
-        maxRetries: 3,
-        preflightCommitment: 'processed',
-      });
-
-      await connection.confirmTransaction({
-        signature: txId,
-        blockhash: blockhash,
-        lastValidBlockHeight
-      });
+      if (!result.success) {
+        throw new Error(result.error);
+      }
 
       setToast({
         message: "Recycle successful!",
@@ -135,6 +100,7 @@ export default function MainWindow() {
       setLocalTokens(current => 
         current?.filter(token => !selectedTokens.includes(token.id)) || []
       );
+
       await Promise.all([
         mutate(),
         refreshPoints(),
