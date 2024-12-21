@@ -88,7 +88,7 @@ export default function Navbar() {
                 className="w-[35px] h-[35px] relative"
               >
                 <Image
-                  src="/images/mobile-wallet.png"
+                  src="/images/wallet-default.png"
                   alt="Wallet"
                   fill
                   className="object-contain"

@@ -62,8 +62,8 @@ export default function WalletButton({ onClick }: WalletButtonProps) {
           height={35}
           className="object-contain"
         />
-        <span className="absolute inset-0 flex items-center justify-center 
-                      font-ms-sans text-[14px] text-black font-[700] pr-4">
+        <span className={`absolute inset-0 flex items-center justify-center 
+                      font-ms-sans text-[14px] text-black font-[700] ${connected && publicKey ? 'pr-4' : ''}`}>
           {connected && publicKey 
             ? formatWalletAddress(publicKey.toBase58())
             : 'Connect Wallet'
