@@ -4,6 +4,7 @@ import { createRecycleTokenTransaction } from '@/services/contract'
 import { RPC_ENDPOINT } from '@/config'
 import { Decimal } from 'decimal.js'
 import { Token } from '@/types/token'
+import { RecycleError, RecycleErrorCode } from '@/types/error'
 
 const connection = new Connection(RPC_ENDPOINT, {
   commitment: 'processed',
@@ -14,6 +15,13 @@ interface RecycleResult {
   success: boolean
   error?: string
   txId?: string
+}
+
+interface RecycleTransactionResponse {
+  success: boolean
+  error?: string
+  code?: RecycleErrorCode
+  serializedTransaction?: string
 }
 
 export function useRecycleTransaction() {
@@ -47,7 +55,19 @@ export function useRecycleTransaction() {
       // 3. 트랜잭션 생성 및 실행
       const result = await createRecycleTokenTransaction(publicKey.toString(), recycleList)
       if (!result.success || !result.serializedTransaction) {
-        throw new Error(result.error || "Failed to create transaction")
+        if (result.code) {
+          switch (result.code) {
+            case RecycleErrorCode.NOT_SUPPORTED:
+              throw new Error("This token cannot be recycled at the moment. Please try another token.");
+            case RecycleErrorCode.INVALID_QUOTE:
+              throw new Error("Failed to get price quote. Please try again later.");
+            case RecycleErrorCode.INVALID_SWAP:
+              throw new Error("Failed to create swap transaction. Please try again later.");
+            default:
+              throw new Error(result.error || "Unknown error occurred");
+          }
+        }
+        throw new Error(result.error || "Failed to create transaction");
       }
 
       const tx = VersionedTransaction.deserialize(
@@ -78,11 +98,11 @@ export function useRecycleTransaction() {
       }
 
     } catch (error: any) {
-      console.error("Recycle transaction failed:", error)
+      console.error("Recycle transaction failed:", error);
       return {
         success: false,
         error: error.message || "Transaction failed"
-      }
+      };
     }
   }
 

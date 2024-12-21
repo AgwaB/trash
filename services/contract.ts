@@ -7,6 +7,7 @@ import IDL from './idl/trash.json'
 import { TOKEN_PROGRAM_ID } from '@solana/spl-token'
 import { Wallet } from '@coral-xyz/anchor'
 import { PROGRAM_ID, RPC_ENDPOINT, SEEDS } from '@/config'
+import { RecycleErrorCode, RecycleError } from '@/types/error'
 
 const connection = new Connection(RPC_ENDPOINT)
 
@@ -129,16 +130,17 @@ export async function fetchRecentRecycles(limit: number = 10) {
   try {
     const program = await getProgram()
     
-    const recycleAccounts = await program.account.recycleData.all()
+    const recycleAccounts = await program.account.recycleProposal.all()
     const sortedRecycles = recycleAccounts
-      .sort((a, b) => b.account.timestamp.sub(a.account.timestamp).toNumber())
+      .sort((a, b) => b.account.executedAt.sub(a.account.executedAt).toNumber())
       .slice(0, limit)
       .map(account => ({
         user: account.account.user.toString(),
         tokenMint: account.account.tokenMint.toString(),
+        tokenAmount: account.account.tokenAmount.toString(),
         solReceived: account.account.solReceived.toString(),
         pointsEarned: account.account.pointsEarned.toString(),
-        timestamp: account.account.timestamp.toString()
+        timestamp: account.account.executedAt.toString()
       }))
     
     return sortedRecycles
@@ -270,57 +272,95 @@ async function getJupiterInstructions(
 ) {
   const NATIVE_MINT = "So11111111111111111111111111111111111111112";
 
-  // 모든 토큰에 대해 병렬로 Jupiter API 호출
   const jupiterResults = await Promise.all(recycleList.map(async ({ mint, amount }) => {
-    // Quote 가져오기
-    const quoteResponse = await (
-      await fetch(
-        `https://quote-api.jup.ag/v6/quote?` + new URLSearchParams({
-          inputMint: mint,
-          outputMint: NATIVE_MINT,
-          amount: amount,
-          dynamicSlippage: "true",
-          onlyDirectRoutes: "true",
-          swapMode: "ExactIn",
-          asLegacyTransaction: "false",
-          maxAccounts: "64",
+    try {
+      // Quote 가져오기
+      const quoteResponse = await (
+        await fetch(
+          `https://quote-api.jup.ag/v6/quote?` + new URLSearchParams({
+            inputMint: mint,
+            outputMint: NATIVE_MINT,
+            amount: amount,
+            dynamicSlippage: "true",
+            onlyDirectRoutes: "true",
+            swapMode: "ExactIn",
+            asLegacyTransaction: "false",
+            maxAccounts: "64",
+          })
+        )
+      ).json();
+
+      if (quoteResponse.error) {
+        throw new RecycleError(
+          RecycleErrorCode.INVALID_QUOTE,
+          `Failed to get quote for token ${mint}: ${quoteResponse.error}`
+        );
+      }
+
+      // Swap Instructions 가져오기
+      const swapResult = await (
+        await fetch('https://quote-api.jup.ag/v6/swap-instructions', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            quoteResponse,
+            userPublicKey: userAddress,
+            destinationTokenAccount: userWsolAccountPDA.toString(),
+            useSharedAccounts: true,
+            wrapUnwrapSOL: true,
+            dynamicComputeUnitLimit: true,
+            prioritizationFeeLamports: {
+              priorityLevelWithMaxLamports: {
+                maxLamports: 500000,
+                global: false,
+                priorityLevel: "veryHigh"
+              }
+            },
+            dynamicSlippage: { maxBps: 1000 }
+          })
         })
-      )
-    ).json();
+      ).json();
 
-    if (!quoteResponse || quoteResponse.error) {
-      throw new Error(`Failed to get quote for token ${mint}: ${quoteResponse?.error || 'Unknown error'}`);
+      if (swapResult.error) {
+        if (swapResult.errorCode === 'NOT_SUPPORTED') {
+          throw new RecycleError(
+            RecycleErrorCode.NOT_SUPPORTED,
+            'This token cannot be recycled using simple AMMs'
+          );
+        }
+        throw new RecycleError(
+          RecycleErrorCode.INVALID_SWAP,
+          `Failed to get swap instructions: ${swapResult.error}`
+        );
+      }
+
+      if (!swapResult.swapInstruction || !swapResult.addressLookupTableAddresses) {
+        throw new RecycleError(
+          RecycleErrorCode.INVALID_SWAP,
+          `Invalid swap instruction for token ${mint}`
+        );
+      }
+
+      return { mint, swapResult };
+    } catch (error: unknown) {
+      if (error instanceof RecycleError) {
+        throw error;
+      }
+      
+      // error가 Error 인스턴스인 경우
+      if (error instanceof Error) {
+        throw new RecycleError(
+          RecycleErrorCode.UNKNOWN,
+          error.message
+        );
+      }
+      
+      // 그 외의 경우
+      throw new RecycleError(
+        RecycleErrorCode.UNKNOWN,
+        'Unknown error occurred'
+      );
     }
-
-    // Swap Instructions 가져오기
-    const swapResult = await (
-      await fetch('https://quote-api.jup.ag/v6/swap-instructions', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          quoteResponse,
-          userPublicKey: userAddress,
-          destinationTokenAccount: userWsolAccountPDA.toString(),
-          useSharedAccounts: true,
-          wrapUnwrapSOL: true,
-          dynamicComputeUnitLimit: true,
-          prioritizationFeeLamports: {
-            priorityLevelWithMaxLamports: {
-              maxLamports: 500000,
-              global: false,
-              priorityLevel: "veryHigh"
-            }
-          },
-          dynamicSlippage: { maxBps: 1000 }
-        })
-      })
-    ).json();
-
-    if (!swapResult.swapInstruction || !swapResult.addressLookupTableAddresses) {
-      throw new Error(`Invalid swap instruction for token ${mint}`);
-    }
-
-    return { mint, swapResult };
   }));
 
   return jupiterResults;
@@ -329,7 +369,12 @@ async function getJupiterInstructions(
 export async function createRecycleTokenTransaction(
   userAddress: string,
   recycleList: RecycleTokenInput[]
-): Promise<{ success: boolean; serializedTransaction?: string; error?: string }> {
+): Promise<{ 
+  success: boolean; 
+  serializedTransaction?: string; 
+  error?: string;
+  code?: RecycleErrorCode;  // 반환 타입에 code 추가
+}> {
   try {
     const userPubkey = new PublicKey(userAddress);
     const connection = new Connection(RPC_ENDPOINT);
@@ -459,11 +504,27 @@ export async function createRecycleTokenTransaction(
       serializedTransaction: Buffer.from(transaction.serialize()).toString('base64')
     };
 
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error("Error in createRecycleTokenTransaction:", error);
+    
+    if (error instanceof RecycleError) {
+      return {
+        success: false,
+        error: error.message,
+        code: error.code
+      };
+    }
+
+    if (error instanceof Error) {
+      return {
+        success: false,
+        error: error.message
+      };
+    }
+
     return {
       success: false,
-      error: error.message || 'Unknown error'
+      error: 'Unknown error occurred'
     };
   }
 }
@@ -505,7 +566,7 @@ export async function getUserRecycleHistory(userAddress: string) {
     const program = await getProgram()
     const userPubkey = new PublicKey(userAddress)
     
-    const recycleAccounts = await program.account.recycleData.all([
+    const recycleAccounts = await program.account.recycleProposal.all([
       {
         memcmp: {
           offset: 8, // discriminator 이후
@@ -517,9 +578,10 @@ export async function getUserRecycleHistory(userAddress: string) {
     return recycleAccounts.map(account => ({
       user: account.account.user.toString(),
       tokenMint: account.account.tokenMint.toString(),
+      tokenAmount: account.account.tokenAmount.toString(),
       solReceived: account.account.solReceived.toString(),
       pointsEarned: account.account.pointsEarned.toString(),
-      timestamp: account.account.timestamp.toString()
+      timestamp: account.account.executedAt.toString()
     }))
   } catch (error) {
     console.error('Error fetching user recycle history:', error)
