@@ -66,7 +66,7 @@ const Win98InnerFrame = React.forwardRef<
         "flex flex-col flex-grow",
         "bg-[#AA9ECA] p-1.5 mt-0",
         // 가장 바깥 테두리
-        "border-[2px] border-[#504DD7]",
+        // "border-[2px] border-[#504DD7]",
         // 두 번째 테두리
         "relative",
         "before:absolute before:content-[''] before:inset-[2px]",
@@ -76,7 +76,7 @@ const Win98InnerFrame = React.forwardRef<
         "before:pointer-events-none",
         // 세 번째 테두리
         "after:absolute after:content-[''] after:inset-[4px]",
-        "after:border-[2px] after:border-[#D8D0F0]",
+        "after:border-[2px] after:border-[#AA9ECA]",
         "after:pointer-events-none",
       className
     )}

@@ -316,7 +316,7 @@ async function getJupiterInstructions(
             dynamicComputeUnitLimit: true,
             prioritizationFeeLamports: {
               priorityLevelWithMaxLamports: {
-                maxLamports: 500000,
+                maxLamports: 5000000,
                 global: false,
                 priorityLevel: "veryHigh"
               }

@@ -1,140 +1,100 @@
-import React, { useState, useEffect } from 'react'
+import React, { useState, useRef } from 'react'
 import Image from 'next/image'
 import { Token, TokenDescription } from '@/types/token'
-import { getTokenFallbackImage as getPredefinedTokenImage } from '@/constants/tokenImages'
+import { getTokenFallbackImage } from '@/constants/tokenImages'
 import { formatAmount } from '@/utils/formatNumber'
+import { calculateTokenPoints } from '@/utils/calculatePoints'
+import RecycleHoverCard from './RecycleHoverCard'
 
 interface TokenItemProps {
   token: Token
   index: number
-  onSelect: (tokenId: string) => void
-  isSelected: boolean
   isMobile: boolean
+  onRecycle: (token: Token) => void
 }
 
-export default function TokenItem({ token, index, onSelect, isSelected, isMobile }: TokenItemProps) {
-  const [imageError, setImageError] = useState(false)
-  const [isLoading, setIsLoading] = useState(true)
-  
-  const isShinyTrash = token.description === TokenDescription.SHINY_TRASH
-  
-  // 이미지 로딩 타임아웃 처리
-  useEffect(() => {
-    if (!token.imageUri) return
+export default function TokenItem({ token, index, isMobile, onRecycle }: TokenItemProps) {
+  const [showHoverCard, setShowHoverCard] = useState(false)
+  const [hoverPosition, setHoverPosition] = useState({ x: 0, y: 0 })
+  const itemRef = useRef<HTMLDivElement>(null)
 
-    const timeoutId = setTimeout(() => {
-      if (isLoading) {
-        setImageError(true)
-        setIsLoading(false)
-      }
-    }, 5000)
+  const handleMouseEnter = (e: React.MouseEvent) => {
+    setHoverPosition({
+      x: e.clientX,
+      y: e.clientY
+    })
+    setShowHoverCard(true)
+  }
 
-    return () => clearTimeout(timeoutId)
-  }, [token.imageUri, isLoading])
-  
-  const handleClick = () => {
-    onSelect(token.id)
+  const handleRecycleClick = () => {
+    setShowHoverCard(false)
+    onRecycle(token)
   }
-  
-  const handleCheckboxClick = (e: React.MouseEvent) => {
-    e.stopPropagation()
-    onSelect(token.id)
-  }
-  
-  // 이미지 소스 결정 로직
+
   const getImageSource = () => {
-    if (imageError) {
-      return "/images/default-token-list.png"
-    }
-
-    const predefinedImage = getPredefinedTokenImage(token.id)
-    if (predefinedImage) {
-      return predefinedImage
-    }
-
-    return token.imageUri || "/images/default-token-list.png"
+    const predefinedImage = getTokenFallbackImage(token.mint)
+    return predefinedImage || token.imageUri || "/images/default-token.png"
   }
+
+  const isShinyTrash = token.description === TokenDescription.SHINY_TRASH
+  const points = calculateTokenPoints(token)
 
   return (
     <div 
-      className={`flex w-full h-[80px] border-b border-[#DFDFDF] ${isSelected ? 'bg-[#333096]' : 'bg-white hover:bg-[#333096]'} group cursor-pointer`}
-      onClick={handleClick}
+      ref={itemRef}
+      className="relative"
+      onMouseEnter={handleMouseEnter}
+      onMouseLeave={() => setShowHoverCard(false)}
     >
-      {/* Index */}
-      <div className={`${isMobile ? 'w-[40px]' : 'w-[58px]'} h-full border-r border-[#DFDFDF] flex items-center justify-center`}>
-        <span className={`font-ms-sans text-[16px] leading-[34px] ${isSelected ? 'text-[#FEFEFE]' : 'text-[#0A0A0A] group-hover:text-[#FEFEFE]'}`}>
-          {index + 1}
-        </span>
-      </div>
-
-      {/* Name */}
-      <div className={`${isMobile ? 'w-[215px]' : 'w-[310px]'} h-full border-r border-[#DFDFDF] flex items-center px-4`}>
-        <div className="flex items-center gap-4">
-          <div className="w-10 h-10 relative flex-shrink-0">
+      {showHoverCard && (
+        <RecycleHoverCard 
+          points={points} 
+          position={hoverPosition}
+          onRecycle={handleRecycleClick}
+        />
+      )}
+      
+      <div className="group flex w-full h-[64px] border-b border-[#DFDFDF] bg-white hover:bg-[#333096]">
+        {/* Name - 좌측 정렬 */}
+        <div className={`${isMobile ? 'w-[120px]' : 'w-[230px]'} h-full border-r border-[#DFDFDF] flex items-center px-4 gap-3`}>
+          <div className="w-[40px] h-[40px] relative">
             <Image
               src={getImageSource()}
-              alt={token.name}
-              width={32}
-              height={32}
+              alt={token.symbol}
+              fill
               className="object-contain"
-              onError={() => {
-                setImageError(true)
-                setIsLoading(false)
-              }}
-              onLoadingComplete={() => setIsLoading(false)}
-              priority={index < 10}
+              unoptimized
             />
-            {isLoading && !imageError && (
-              <div className="absolute inset-0 flex items-center justify-center bg-gray-100">
-                {/* 로딩 인디케이터 (선택사항) */}
-              </div>
-            )}
           </div>
-          <div className="flex flex-col">
-            <span className={`font-ms-sans text-[16px] leading-[20px] truncate ${
-              isSelected ? 'text-[#FEFEFE]' : 'text-[#0A0A0A] group-hover:text-[#FEFEFE]'
-            }`}>
-              ${token.symbol}
-            </span>
-            <span className={`font-ms-sans text-[14px] leading-[18px] truncate ${
-              isSelected ? 'text-[#FEFEFE]' : 'text-[#0A0A0A] group-hover:text-[#FEFEFE]'
-            }`}>
-              ({formatAmount(Number(token.amount))})
-            </span>
-          </div>
+          <span className="font-ms-sans text-[16px] leading-[34px] truncate text-[#0A0A0A] group-hover:text-white">
+            ${token.symbol}
+          </span>
         </div>
-      </div>
 
-      {/* Description */}
-      <div className={`${isMobile ? 'w-[113px]' : 'w-[160px]'} h-full border-r border-[#DFDFDF] flex items-center justify-center px-2`}>
-        <span className={`font-ms-sans text-[16px] leading-[34px] truncate text-center ${
-          isShinyTrash 
-            ? `text-[#7F3DF0] ${isSelected ? 'text-[#FFF200]' : 'group-hover:text-[#FFF200]'}`
-            : `text-[#0A0A0A] ${isSelected ? 'text-[#FEFEFE]' : 'group-hover:text-[#FEFEFE]'}`
-        }`}>
-          {token.description}
-        </span>
-      </div>
+        {/* Amount - 우측 정렬 */}
+        <div className={`${isMobile ? 'w-[100px]' : 'w-[150px]'} h-full border-r border-[#DFDFDF] flex items-center justify-end px-4`}>
+          <span className="font-ms-sans text-[16px] leading-[34px] text-[#0A0A0A] group-hover:text-white">
+            {formatAmount(Number(token.amount))}
+          </span>
+        </div>
 
-      {/* Action */}
-      <div className={`${isMobile ? 'w-[50px]' : 'w-[95px]'} h-full flex items-center justify-center`}>
-        <button
-          onClick={handleCheckboxClick}
-          className="w-[16px] h-[16px] bg-white border-none relative shadow-[inset_-1px_-1px_0px_#FFF,inset_1px_1px_0px_#808080,inset_-2px_-2px_0px_#C1C1C1,inset_2px_2px_0px_#000]"
-        >
-          {isSelected && (
-            <div className="absolute inset-0 m-[2px]">
-              <Image
-                src="/icons/check.png"
-                alt="Checked"
-                width={12}
-                height={12}
-                className="w-full h-full"
-                unoptimized
-              />
-            </div>
-          )}
-        </button>
+        {/* Description - 중앙 정렬 */}
+        <div className={`${isMobile ? 'w-[120px]' : 'w-[180px]'} h-full border-r border-[#DFDFDF] flex items-center justify-center px-4`}>
+          <span className={`font-ms-sans text-[16px] leading-[34px] truncate text-center ${
+            isShinyTrash 
+            ? 'text-[#7F3DF0] group-hover:text-[#FFF200]'
+            : 'text-[#0A0A0A] group-hover:text-white'
+          }`}>
+            {token.description}
+          </span>
+        </div>
+
+        {/* Points - 좌측 정렬 */}
+        <div className={`${isMobile ? 'w-[100px]' : 'w-[172px]'} h-full flex items-center justify-start px-4`}>
+          <span className="font-ms-sans text-[16px] leading-[34px] text-[#0A0A0A] group-hover:text-white">
+            {points}
+          </span>
+        </div>
       </div>
     </div>
   )

@@ -20,6 +20,7 @@ import LoadingModal from '../shared/LoadingModal'
 import { Decimal } from 'decimal.js';
 import { Token } from '@/types/token'
 import { useRecycleTransaction } from '@/hooks/useRecycleTransaction'
+import TokenStatusBar from '../shared/TokenStatusBar'
 
 const connection = new Connection(RPC_ENDPOINT, {
   commitment: 'processed',
@@ -33,7 +34,6 @@ export default function MainWindow() {
   const [isHowItWorksOpen, setIsHowItWorksOpen] = useState(false)
   const [isPressed, setIsPressed] = useState(false)
   const [isHovered, setIsHovered] = useState(false)
-  const [selectedTokens, setSelectedTokens] = useState<string[]>([])
   const [calculatedPoints, setCalculatedPoints] = useState<string>('0')
   const [toast, setToast] = useState<{
     message: string;
@@ -51,42 +51,13 @@ export default function MainWindow() {
 
   const totalVolume = Number(vaultInfo.totalSolDeposited) / 1e9
 
-  const handleTokenSelect = (tokenId: string) => {
-    setSelectedTokens(prev => 
-      prev.includes(tokenId) 
-        ? prev.filter(id => id !== tokenId)
-        : [...prev, tokenId]
-    )
-  }
-
-  const getButtonImage = () => {
-    if (isPressed) return '/images/recycle-pressed.png'
-    if (isHovered) return '/images/recycle-focus.png'
-    return '/images/recycle.png'
-  }
-
-  const getButtonOpacity = () => {
-    if (connected && (tokens?.length === 0 || selectedTokens.length === 0)) {
-      return 'opacity-50'
-    }
-    return ''
-  }
-
-  const getButtonText = () => {
-    if (!connected) return 'Connect Wallet'
-    return 'Recycle'
-  }
-
-  const handleRecycleClick = async () => {
-    if (!connected || selectedTokens.length === 0) return;
+  const handleRecycleClick = async (token: Token) => {
+    if (!connected) return;
 
     try {
       setIsRecycling(true);
 
-      const selectedTokenData = tokens?.filter(token => selectedTokens.includes(token.id));
-      if (!selectedTokenData) return;
-
-      const result = await executeRecycle(selectedTokenData);
+      const result = await executeRecycle([token]);
       
       if (!result.success) {
         throw new Error(result.error);
@@ -100,7 +71,7 @@ export default function MainWindow() {
       });
 
       setLocalTokens(current => 
-        current?.filter(token => !selectedTokens.includes(token.id)) || []
+        current?.filter(t => t.id !== token.id) || []
       );
 
       await Promise.all([
@@ -117,61 +88,71 @@ export default function MainWindow() {
       });
     } finally {
       setIsRecycling(false);
-      setSelectedTokens([]);
     }
   };
 
   const renderContent = () => {
-    if (!connected) {
-      return (
-        <div className="flex flex-col items-center justify-center h-full">
-          <div className="flex-1 flex items-center justify-center w-full">
-            <Image
-              src="/images/character.gif"
-              alt="Trash Character"
-              width={390}
-              height={190}
-              className="object-contain"
-              unoptimized
-            />
-          </div>
-          <div className="text-center text-base mb-6">
-            Throw away your worthless tokens.<br />
-            We recycle them to even more worthless points.
-          </div>
-        </div>
-      )
-    }
-
-    if (isLoading) return <LoadingView />
-    
     const validTokens = (localTokens || tokens)?.filter(token => 
       Number(token.amount) > 0
       && (token.solValue && Number(token.solValue) > 0)
-    )
-    
-    if (!validTokens || validTokens.length === 0) return <EmptyView />
-    
+    ) || []
+
     return (
-      <TokenList
-        tokens={validTokens}
-        selectedTokens={selectedTokens}
-        onSelectToken={handleTokenSelect}
-        onPointsChange={setCalculatedPoints}
-      />
+      <Win98InnerFrame className="flex-1 min-h-0 flex flex-col overflow-visible">
+        <TokenStatusBar 
+          tokenCount={
+            !connected ? 0 : 
+            isLoading ? null : 
+            validTokens.length
+          } 
+        />
+        <Win98ContentArea className="flex-1 min-h-0 overflow-visible">
+          {!connected ? (
+            <div className="flex flex-col items-center justify-center h-full">
+              <div className="flex-1 flex items-center justify-center w-full">
+                <Image
+                  src="/images/character.gif"
+                  alt="Trash Character"
+                  width={390}
+                  height={190}
+                  className="object-contain"
+                  unoptimized
+                />
+              </div>
+              <div className="text-center text-base mb-6">
+                Throw away your worthless tokens.<br />
+                We recycle them to even more worthless points.
+              </div>
+            </div>
+          ) : isLoading ? (
+            <LoadingView />
+          ) : !validTokens || validTokens.length === 0 ? (
+            <EmptyView />
+          ) : (
+            <TokenList
+              tokens={validTokens}
+              onPointsChange={setCalculatedPoints}
+              isMobile={false}
+              onRecycle={handleRecycleClick}
+            />
+          )}
+        </Win98ContentArea>
+      </Win98InnerFrame>
     )
   }
 
   return (
-    <>
+    <div className="flex justify-center items-start w-full h-full">
       <Win98Frame className="
         w-[450px] h-[600px]
         md:w-[calc(100vw-200px)]
-        md:max-w-[450px]
+        md:max-w-[732px]
         md:h-[calc(100vh-120px)]
         md:max-h-[600px]
         md:min-h-[400px]
         flex flex-col
+        overflow-visible
+        relative
       ">
         <Win98TitleBar className="h-[36px] bg-[#503D9E] text-white flex-shrink-0">
           <div className="flex justify-between items-center w-full">
@@ -213,56 +194,39 @@ export default function MainWindow() {
             </div>
           </div>
         </Win98TitleBar>
-
-        <Win98InnerFrame className="flex-1 min-h-0 flex flex-col">
-          <Win98ContentArea className="flex-1 min-h-0">
-            {renderContent()}
-          </Win98ContentArea>
-        </Win98InnerFrame>
+        
+        {renderContent()}
 
         <Win98Footer className="flex-shrink-0">
           <div className="h-[2px] border-t border-t-[#CCC0F8] border-b border-b-[#776EBA]" />
           <Win98FooterContent>
-            {connected && (
+            {connected ? (
               <>
                 <div className="font-ms-sans text-[14px] text-[#3C3987]">
-                  Recycle for Points:
+                  Maximum Points You Can Recycle:
                 </div>
                 <div className="font-ms-sans text-[14px] text-black mb-2">
-                  {calculatedPoints.toLocaleString()}
+                  {isLoading ? '-' : calculatedPoints.toLocaleString()}
                 </div>
               </>
+            ) : (
+              <button
+                onClick={() => setIsWalletModalOpen(true)}
+                className="relative w-[208px] h-[38px] flex items-center justify-center"
+              >
+                <Image
+                  src="/images/recycle.png"
+                  alt="Connect Wallet"
+                  width={208}
+                  height={38}
+                  className="object-contain"
+                />
+                <span className="absolute inset-0 flex items-center justify-center 
+                              font-ms-sans text-[14px] text-white font-[700]">
+                  Connect Wallet
+                </span>
+              </button>
             )}
-            <button
-              onClick={() => {
-                if (!connected) {
-                  setIsWalletModalOpen(true)
-                } else if (selectedTokens.length > 0) {
-                  handleRecycleClick()
-                }
-              }}
-              onMouseDown={() => setIsPressed(true)}
-              onMouseUp={() => setIsPressed(false)}
-              onMouseLeave={() => {
-                setIsPressed(false)
-                setIsHovered(false)
-              }}
-              onMouseEnter={() => setIsHovered(true)}
-              className="relative w-[208px] h-[38px] flex items-center justify-center"
-              disabled={connected && (tokens?.length === 0 || selectedTokens.length === 0)}
-            >
-              <Image
-                src={getButtonImage()}
-                alt="Action Button"
-                width={208}
-                height={38}
-                className={`object-contain ${getButtonOpacity()}`}
-              />
-              <span className="absolute inset-0 flex items-center justify-center 
-                            font-ms-sans text-[14px] text-white font-[700]">
-                {getButtonText()}
-              </span>
-            </button>
           </Win98FooterContent>
         </Win98Footer>
       </Win98Frame>
@@ -290,6 +254,6 @@ export default function MainWindow() {
         isOpen={isRecycling} 
         onClose={() => setIsRecycling(false)}
       />
-    </>
+    </div>
   )
 } 

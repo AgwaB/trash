@@ -22,7 +22,6 @@ export default function MobileMainWindow() {
   const [isHowItWorksOpen, setIsHowItWorksOpen] = useState(false)
   const [isPressed, setIsPressed] = useState(false)
   const [isHovered, setIsHovered] = useState(false)
-  const [selectedTokens, setSelectedTokens] = useState<string[]>([])
   const [calculatedPoints, setCalculatedPoints] = useState<string>('0')
   const [toast, setToast] = useState<{
     message: string;
@@ -40,14 +39,6 @@ export default function MobileMainWindow() {
 
   const totalVolume = Number(vaultInfo.totalSolDeposited) / 1e9
 
-  const handleTokenSelect = (tokenId: string) => {
-    setSelectedTokens(prev => 
-      prev.includes(tokenId) 
-        ? prev.filter(id => id !== tokenId)
-        : [...prev, tokenId]
-    )
-  }
-
   const getButtonImage = () => {
     if (isPressed) return '/images/mobile-recycle-pressed.png'
     if (isHovered) return '/images/mobile-recycle-focus.png'
@@ -55,7 +46,7 @@ export default function MobileMainWindow() {
   }
 
   const getButtonOpacity = () => {
-    if (connected && (tokens?.length === 0 || selectedTokens.length === 0)) {
+    if (connected && tokens?.length === 0) {
       return 'opacity-50'
     }
     return ''
@@ -67,15 +58,12 @@ export default function MobileMainWindow() {
   }
 
   const handleRecycleClick = async () => {
-    if (!connected || selectedTokens.length === 0) return;
+    if (!connected) return;
 
     try {
       setIsRecycling(true);
 
-      const selectedTokenData = tokens?.filter(token => selectedTokens.includes(token.id));
-      if (!selectedTokenData) return;
-
-      const result = await executeRecycle(selectedTokenData);
+      const result = await executeRecycle(tokens || []);
       
       if (!result.success) {
         throw new Error(result.error);
@@ -88,9 +76,7 @@ export default function MobileMainWindow() {
         type: "success"
       });
 
-      setLocalTokens(current => 
-        current?.filter(token => !selectedTokens.includes(token.id)) || []
-      );
+      setLocalTokens([]);
 
       await Promise.all([
         mutate(),
@@ -106,7 +92,6 @@ export default function MobileMainWindow() {
       });
     } finally {
       setIsRecycling(false);
-      setSelectedTokens([]);
     }
   };
 
@@ -144,10 +129,9 @@ export default function MobileMainWindow() {
     return (
       <TokenList
         tokens={validTokens}
-        selectedTokens={selectedTokens}
-        onSelectToken={handleTokenSelect}
         onPointsChange={setCalculatedPoints}
         isMobile={true}
+        onRecycle={handleRecycleClick}
       />
     )
   }
@@ -222,14 +206,14 @@ export default function MobileMainWindow() {
               onClick={() => {
                 if (!connected) {
                   setIsWalletModalOpen(true)
-                } else if (selectedTokens.length > 0) {
+                } else {
                   handleRecycleClick()
                 }
               }}
               onMouseDown={() => setIsPressed(true)}
               onMouseUp={() => setIsPressed(false)}
               className="relative w-[240px] h-[50px] flex items-center justify-center"
-              disabled={isRecycling || (connected && (tokens?.length === 0 || selectedTokens.length === 0))}
+              disabled={isRecycling || (connected && tokens?.length === 0)}
             >
               <Image
                 src={getButtonImage()}

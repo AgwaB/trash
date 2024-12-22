@@ -99,6 +99,15 @@ export function useRecycleTransaction() {
 
     } catch (error: any) {
       console.error("Recycle transaction failed:", error);
+      
+      // 에러 메시지 구분
+      if (error.message?.includes('block height exceeded')) {
+        return {
+          success: false,
+          error: 'Network is congested. Please try again.'
+        }
+      }
+
       return {
         success: false,
         error: error.message || "Transaction failed"

@@ -1,75 +1,57 @@
-import React, { useEffect } from 'react'
-import { Token } from '@/types/token'
+import React from 'react'
 import TokenItem from './TokenItem'
+import { Token } from '@/types/token'
+import { calculateTotalPoints } from '@/utils/calculatePoints'
+import { calculateTokenPoints } from '@/utils/calculatePoints'
 import TableHeader from './TableHeader'
-import { Decimal } from 'decimal.js'
 
 interface TokenListProps {
   tokens: Token[]
-  selectedTokens: string[]
-  onSelectToken: (tokenId: string) => void
   onPointsChange: (points: string) => void
-  isMobile?: boolean
-}
-
-const calculatePoints = (tokens: Token[], selectedTokens: string[]) => {
-  return tokens
-    .filter(token => selectedTokens.includes(token.id))
-    .reduce((total, token) => {
-      if (token.solValue) {
-        const value = new Decimal(token.solValue)
-        const amount = new Decimal(token.amount)
-        const multiplier = new Decimal(token.multiplier)
-        return total.plus(value.mul(amount).mul(multiplier))
-      }
-      return total
-    }, new Decimal(0))
-    .toFixed(20)
+  isMobile: boolean
+  onRecycle: (token: Token) => void
 }
 
 export default function TokenList({ 
   tokens, 
-  selectedTokens, 
-  onSelectToken, 
   onPointsChange,
-  isMobile = false 
+  isMobile,
+  onRecycle 
 }: TokenListProps) {
-  const sortedTokens = [...tokens]
-  // Filter out tokens with zero amount and then sort
-    .filter(token => new Decimal(token.amount || '0').gt(0))
-    .sort((a, b) => {
-      const aAmount = new Decimal(a.amount || '0')
-      const bAmount = new Decimal(b.amount || '0')
-      const aSolValue = new Decimal(a.solValue || '0')
-      const bSolValue = new Decimal(b.solValue || '0')
-      
-      const aTotalValue = aSolValue.mul(aAmount)
-      const bTotalValue = bSolValue.mul(bAmount)
-      
-      return bTotalValue.minus(aTotalValue).toNumber()
-    })
 
-  useEffect(() => {
-    const points = calculatePoints(tokens, selectedTokens)
+  // 모든 토큰의 총 포인트 계산 및 업데이트
+  React.useEffect(() => {
+    // 토큰이 없거나 빈 배열일 경우 0 반환
+    if (!tokens || tokens.length === 0) {
+      onPointsChange('0')
+      return
+    }
+    const points = calculateTotalPoints(tokens, tokens.map(t => t.id))
     onPointsChange(points)
-  }, [selectedTokens, tokens, onPointsChange])
+  }, [tokens, onPointsChange])
+
+  // 토큰을 포인트 기준으로 정렬
+  const sortedTokens = [...tokens].sort((a, b) => {
+    const pointsA = Number(calculateTokenPoints(a))
+    const pointsB = Number(calculateTokenPoints(b))
+    return pointsB - pointsA
+  })
 
   return (
-    <div className="w-full h-full flex flex-col">
-      <div className="flex-shrink-0">
-        <TableHeader isMobile={isMobile} />
-      </div>
-      <div className="flex-1 overflow-y-auto min-h-0 scrollbar-win98">
-        {sortedTokens.map((token, index) => (
-          <TokenItem
-            key={token.id}
-            token={token}
-            index={index}
-            onSelect={onSelectToken}
-            isSelected={selectedTokens.includes(token.id)}
-            isMobile={isMobile}
-          />
-        ))}
+    <div className="flex flex-col w-full h-full">
+      <TableHeader isMobile={isMobile} />
+      <div className="flex-1 overflow-y-auto overflow-x-visible">
+        <div className="relative">
+          {sortedTokens.map((token, index) => (
+            <TokenItem
+              key={token.id}
+              token={token}
+              index={index}
+              isMobile={isMobile}
+              onRecycle={onRecycle}
+            />
+          ))}
+        </div>
       </div>
     </div>
   )
