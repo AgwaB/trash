@@ -40,9 +40,9 @@ export default function MobileMainWindow() {
   const totalVolume = Number(vaultInfo.totalSolDeposited) / 1e9
 
   const getButtonImage = () => {
-    if (isPressed) return '/images/mobile-recycle-pressed.png'
-    if (isHovered) return '/images/mobile-recycle-focus.png'
-    return '/images/mobile-recycle.png'
+    if (isPressed) return '/images/recycle-pressed.png'
+    if (isHovered) return '/images/recycle-focus.png'
+    return '/images/recycle.png'
   }
 
   const getButtonOpacity = () => {
@@ -195,41 +195,43 @@ export default function MobileMainWindow() {
         <div className="flex-shrink-0 bg-[#504DA7] mx-1 mb-1">
           <div className="h-[2px] border-t border-t-[#CCC0F8] border-b border-b-[#776EBA]" />
           <div className="p-4 flex flex-col items-center">
-            {connected && (
+            {connected ? (
               <>
-                <div className="font-ms-sans font-normal text-[16px] text-[#AA9ECA]">
+                <div className="font-ms-sans font-normal text-[16px] text-[#AA9ECA] flex items-center gap-2">
+                  <div className="w-[18px] h-[18px] relative">
+                    <Image
+                      src="/icons/mobile-trash.png"
+                      alt="Trash"
+                      fill
+                      className="object-contain"
+                    />
+                  </div>
                   Recycle for Points:
                 </div>
-                <div className="font-ms-sans font-bold text-[16px] text-[#FEFEFE] mb-2">
+                <div className="font-ms-sans font-bold text-[16px] text-[#FEFEFE]">
                   {calculatedPoints.toLocaleString()}
                 </div>
               </>
+            ) : (
+              <button
+                onClick={() => setIsWalletModalOpen(true)}
+                onMouseDown={() => setIsPressed(true)}
+                onMouseUp={() => setIsPressed(false)}
+                className="relative w-[240px] h-[50px] flex items-center justify-center"
+              >
+                <Image
+                  src={getButtonImage()}
+                  alt="Action Button"
+                  width={240}
+                  height={50}
+                  className="object-contain"
+                />
+                <span className="absolute inset-0 flex items-center justify-center 
+                   font-ms-sans text-[14px] text-white font-[700]">
+                  Connect Wallet
+                </span>
+              </button>
             )}
-            <button
-              onClick={() => {
-                if (!connected) {
-                  setIsWalletModalOpen(true)
-                } else {
-                  handleRecycleClick([])
-                }
-              }}
-              onMouseDown={() => setIsPressed(true)}
-              onMouseUp={() => setIsPressed(false)}
-              className="relative w-[240px] h-[50px] flex items-center justify-center"
-              disabled={isRecycling || (connected && tokens?.length === 0)}
-            >
-              <Image
-                src={getButtonImage()}
-                alt="Action Button"
-                width={240}
-                height={50}
-                className={`object-contain ${getButtonOpacity()}`}
-              />
-              <span className="absolute inset-0 flex items-center justify-center 
-                 font-ms-sans text-[14px] text-white font-[700]">
-                {isRecycling ? 'Processing...' : getButtonText()}
-              </span>
-            </button>
           </div>
         </div>
       </div>
