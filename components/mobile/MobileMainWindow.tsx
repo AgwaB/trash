@@ -57,43 +57,46 @@ export default function MobileMainWindow() {
     return 'Recycle'
   }
 
-  const handleRecycleClick = async () => {
-    if (!connected) return;
+  const handleRecycleClick = async (selectedTokens: Token[]) => {
+    if (!connected) {
+      setIsWalletModalOpen(true)
+      return
+    }
 
     try {
-      setIsRecycling(true);
+      setIsRecycling(true)
 
-      const result = await executeRecycle(tokens || []);
+      const result = await executeRecycle(selectedTokens)
       
       if (!result.success) {
-        throw new Error(result.error);
+        throw new Error(result.error)
       }
-
-      setIsRecycling(false);
 
       setToast({
         message: "Recycle successful!",
         type: "success"
-      });
+      })
 
-      setLocalTokens([]);
+      setLocalTokens(current => 
+        current?.filter(t => !selectedTokens.find(st => st.id === t.id)) || []
+      )
 
       await Promise.all([
         mutate(),
         refreshPoints(),
         mutateVaultInfo()
-      ]);
+      ])
       
     } catch (error: any) {
-      console.error("Recycle failed:", error);
+      console.error("Recycle failed:", error)
       setToast({
         message: error.message || "Recycle failed",
         type: "error"
-      });
+      })
     } finally {
-      setIsRecycling(false);
+      setIsRecycling(false)
     }
-  };
+  }
 
   const renderContent = () => {
     if (!connected) {
@@ -207,7 +210,7 @@ export default function MobileMainWindow() {
                 if (!connected) {
                   setIsWalletModalOpen(true)
                 } else {
-                  handleRecycleClick()
+                  handleRecycleClick([])
                 }
               }}
               onMouseDown={() => setIsPressed(true)}
@@ -250,11 +253,6 @@ export default function MobileMainWindow() {
           onClose={() => setToast(null)}
         />
       )}
-
-      <LoadingModal 
-        isOpen={isRecycling} 
-        onClose={() => setIsRecycling(false)}
-      />
     </>
   )
 } 

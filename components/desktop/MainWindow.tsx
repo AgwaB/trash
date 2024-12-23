@@ -51,45 +51,45 @@ export default function MainWindow() {
 
   const totalVolume = Number(vaultInfo.totalSolDeposited) / 1e9
 
-  const handleRecycleClick = async (token: Token) => {
-    if (!connected) return;
+  const handleRecycleClick = async (tokens: Token[]) => {
+    if (!connected) {
+      setIsWalletModalOpen(true)
+      return
+    }
 
     try {
-      setIsRecycling(true);
-
-      const result = await executeRecycle([token]);
+      setIsRecycling(true)
+      const result = await executeRecycle(tokens)
       
       if (!result.success) {
-        throw new Error(result.error);
+        throw new Error(result.error)
       }
-
-      setIsRecycling(false);
 
       setToast({
         message: "Recycle successful!",
         type: "success"
-      });
+      })
 
       setLocalTokens(current => 
-        current?.filter(t => t.id !== token.id) || []
-      );
+        current?.filter(t => !tokens.find(st => st.id === t.id)) || []
+      )
 
       await Promise.all([
         mutate(),
         refreshPoints(),
         mutateVaultInfo()
-      ]);
-      
+      ])
+
     } catch (error: any) {
-      console.error("Recycle failed:", error);
+      console.error("Recycle failed:", error)
       setToast({
         message: error.message || "Recycle failed",
         type: "error"
-      });
+      })
     } finally {
-      setIsRecycling(false);
+      setIsRecycling(false)
     }
-  };
+  }
 
   const renderContent = () => {
     const validTokens = (localTokens || tokens)?.filter(token => 

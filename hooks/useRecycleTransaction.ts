@@ -7,8 +7,8 @@ import { Token } from '@/types/token'
 import { RecycleError, RecycleErrorCode } from '@/types/error'
 
 const connection = new Connection(RPC_ENDPOINT, {
-  commitment: 'processed',
-  confirmTransactionInitialTimeout: 60000,
+  commitment: 'confirmed',
+  confirmTransactionInitialTimeout: 120000,
 })
 
 interface RecycleResult {
@@ -74,7 +74,7 @@ export function useRecycleTransaction() {
         Buffer.from(result.serializedTransaction, 'base64')
       )
 
-      const { blockhash, lastValidBlockHeight } = await connection.getLatestBlockhash('confirmed')
+      const { blockhash, lastValidBlockHeight } = await connection.getLatestBlockhash()
       tx.message.recentBlockhash = blockhash
 
       const signedTx = await signTransaction(tx)

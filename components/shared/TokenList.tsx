@@ -9,7 +9,7 @@ interface TokenListProps {
   tokens: Token[]
   onPointsChange: (points: string) => void
   isMobile: boolean
-  onRecycle: (token: Token) => void
+  onRecycle: (tokens: Token[]) => void
 }
 
 export default function TokenList({ 

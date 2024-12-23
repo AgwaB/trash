@@ -253,6 +253,11 @@ async function prepareRecycleAccounts(
   } catch (e) {
     initIx = await initializeUserStats(userPubkey, program);
   }
+  console.log(`userStatsPDA: ${userStatsPDA.toString()}`)
+  console.log(`vaultPDA: ${vaultPDA.toString()}`)
+  console.log(`programWsolAccount: ${programWsolAccount.toString()}`)
+  console.log(`programAuthority: ${programAuthority.toString()}`)
+  console.log(`userWsolAccountPDA: ${userWsolAccountPDA.toString()}`)
 
   return {
     userStatsPDA,
@@ -298,9 +303,8 @@ async function getJupiterInstructions(
       }
 
       quoteResponse.swapType = "aggregator"
-      console.log(`quoteResponse: ${JSON.stringify(quoteResponse)}`)
 
-      // Swap Instructions 가져오기
+      // Swap Instructions 가져오기 - 우선순위 수수료 추가
       const swapResult = await (
         await fetch('https://quote-api.jup.ag/v6/swap-instructions', {
           method: 'POST',
@@ -309,24 +313,19 @@ async function getJupiterInstructions(
             quoteResponse,
             userPublicKey: userAddress,
             destinationTokenAccount: userWsolAccountPDA.toString(),
+            useSharedAccounts: true,
             allowOptimizedWrappedSolTokenAccount: true,
             asLegacyTransaction: false,
-            correctLastValidBlockHeight: true,
-            wrapAndUnwrapSol: true,
+            computeUnitPriceMicroLamports: 50000, // 우선순위 수수료 추가
             dynamicComputeUnitLimit: true,
-            prioritizationFeeLamports: {
-              priorityLevelWithMaxLamports: {
-                maxLamports: 5000000,
-                global: false,
-                priorityLevel: "veryHigh"
-              }
-            },
+            wrapAndUnwrapSol: true,
             dynamicSlippage: { maxBps: 1000 }
           })
         })
       ).json();
 
       if (swapResult.error) {
+        console.log(`swapResult: ${JSON.stringify(swapResult)}`)
         if (swapResult.errorCode === 'NOT_SUPPORTED') {
           throw new RecycleError(
             RecycleErrorCode.NOT_SUPPORTED,
@@ -462,6 +461,7 @@ export async function createRecycleTokenTransaction(
       instructions.push(swapIx);
 
       // Execute Proposal Instruction
+      console.log(`userWsolAccountPDA: ${accounts.userWsolAccountPDA.toString()}`)
       const executeProposalIx = await program.methods
         .executeRecycleProposal(timestamp)
         .accounts({
