@@ -86,25 +86,6 @@ export async function fetchUserStats(userAddress: string) {
   }
 }
 
-export async function fetchTokenLabel(mintAddress: string) {
-  try {
-    const mintPubkey = new PublicKey(mintAddress)
-    const labelPDA = await getLabelPDA(mintPubkey)
-    
-    const program = await getProgram()
-    const label = await program.account.label.fetch(labelPDA)
-    
-    return {
-      mint: label.mint.toString(),
-      name: label.name,
-      multiplier: label.multiplier.toString()
-    }
-  } catch (error) {
-    console.error('Error fetching token label:', error)
-    return null
-  }
-}
-
 export async function fetchVaultInfo() {
   try {
     const vaultPDA = await getVaultPDA()
@@ -534,37 +515,6 @@ export async function createRecycleTokenTransaction(
   }
 }
 
-// 사용자 토큰 계정 조회
-export async function getUserTokenAccounts(userAddress: string) {
-  try {
-    const userPubkey = new PublicKey(userAddress)
-    const tokenAccounts = await connection.getParsedTokenAccountsByOwner(
-      userPubkey,
-      { programId: TOKEN_PROGRAM_ID }
-    )
-
-    const labelSystem = await getAllLabels()
-
-    const tokenDetails = tokenAccounts.value.map((tokenAccount) => {
-      const mintAddress = tokenAccount.account.data.parsed.info.mint
-      const balance = tokenAccount.account.data.parsed.info.tokenAmount.uiAmount
-      const label = labelSystem[mintAddress]
-
-      return {
-        mint: mintAddress,
-        balance,
-        description: label.description,
-        multiplier: label.multiplier
-      }
-    })
-
-    return tokenDetails
-  } catch (error) {
-    console.error('Error fetching user token accounts:', error)
-    return []
-  }
-}
-
 // 특정 사용자의 리사이클 히스토리 조회
 export async function getUserRecycleHistory(userAddress: string) {
   try {
@@ -599,6 +549,7 @@ export async function getAllLabels() {
     const program = await getProgram()
     const labelAccounts = await program.account.label.all()
     
+    console.log(`labelAccounts: ${JSON.stringify(labelAccounts)}`)
     return Object.fromEntries(
       labelAccounts.map(account => {
         const label = account.account

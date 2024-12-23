@@ -36,7 +36,8 @@ export default function TokenItem({ token, index, isMobile, onRecycle }: TokenIt
     return predefinedImage || token.imageUri || "/images/default-token-list.png"
   }
 
-  const isShinyTrash = token.description === TokenDescription.SHINY_TRASH
+  console.log(`token ${token.symbol} multiplier: ${token.multiplier}`)
+  const isSpecialToken = Number(token.multiplier) > 1
   const points = calculateTokenPoints(token)
 
   if (isMobile) {
@@ -66,7 +67,7 @@ export default function TokenItem({ token, index, isMobile, onRecycle }: TokenIt
         {/* Description */}
         <div className="w-[130px] h-full border-r border-[#DFDFDF] flex items-center justify-center">
           <span className={`font-ms-sans text-[14px] text-center ${
-            token.description === TokenDescription.SHINY_TRASH 
+            isSpecialToken
             ? 'text-[#7F3DF0]'
             : 'text-[#0A0A0A]'
           }`}>
@@ -135,7 +136,7 @@ export default function TokenItem({ token, index, isMobile, onRecycle }: TokenIt
         {/* Description - 중앙 정렬 */}
         <div className={`${isMobile ? 'w-[120px]' : 'w-[180px]'} h-full border-r border-[#DFDFDF] flex items-center justify-center px-4`}>
           <span className={`font-ms-sans text-[16px] leading-[34px] truncate text-center ${
-            isShinyTrash 
+            isSpecialToken
             ? 'text-[#7F3DF0] group-hover:text-[#FFF200]'
             : 'text-[#0A0A0A] group-hover:text-white'
           }`}>

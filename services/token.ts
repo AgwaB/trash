@@ -7,7 +7,6 @@ import { Token, TokenType } from "@/types/token"
 import { unstable_cache } from 'next/cache'
 import { getCachedPrices, updateCachedPrice, getExpiredTokenIds, getAllCachedPrices } from './cache'
 import { Decimal } from 'decimal.js'
-import { getAllLabels } from './contract'
 import { TOKEN_PROGRAM_ID, TOKEN_2022_PROGRAM_ID, RPC_ENDPOINT, WSOL_MINT } from '@/config'
 import { sleep } from "@/utils/sleep"
 import { TokenStandard } from '@metaplex-foundation/mpl-token-metadata'

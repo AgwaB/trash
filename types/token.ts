@@ -28,7 +28,8 @@ export enum TokenDescription {
     POOP = "Poop",
     GARBAGE = "Garbage",
     UTILITY_TRASH = "Utility Trash",
-    SHINY_TRASH = "Shiny Trash"
+    SHINY_TRASH = "Shiny Trash",
+    VAPORWARE = "Vaporware"
 }
 
 export interface TokenListState {
