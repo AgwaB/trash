@@ -270,6 +270,7 @@ async function getJupiterInstructions(
             dynamicSlippage: "true",
             onlyDirectRoutes: "false",
             swapMode: "ExactIn",
+            swapType: "aggregator",
             asLegacyTransaction: "false",
             maxAccounts: "64",
           })
@@ -293,14 +294,15 @@ async function getJupiterInstructions(
           body: JSON.stringify({
             quoteResponse,
             userPublicKey: userAddress,
-            destinationTokenAccount: userWsolAccountPDA.toString(),
-            useSharedAccounts: true,
             allowOptimizedWrappedSolTokenAccount: true,
+            correctLastValidBlockHeight: true,
             asLegacyTransaction: false,
-            computeUnitPriceMicroLamports: 50000, // 우선순위 수수료 추가
             dynamicComputeUnitLimit: true,
             wrapAndUnwrapSol: true,
-            dynamicSlippage: { maxBps: 1000 }
+            prioritizationFeeLamports: {
+              autoMultiplier: 1
+            },
+            dynamicSlippage: { maxBps: 500 }
           })
         })
       ).json();
@@ -319,7 +321,7 @@ async function getJupiterInstructions(
         );
       }
 
-      if (!swapResult.swapInstruction || !swapResult.addressLookupTableAddresses) {
+      if (!swapResult.setupInstructions || !swapResult.swapInstruction || !swapResult.addressLookupTableAddresses) {
         throw new RecycleError(
           RecycleErrorCode.INVALID_SWAP,
           `Invalid swap instruction for token ${mint}`
@@ -403,10 +405,7 @@ export async function createRecycleTokenTransaction(
         .accounts({
           user: userPubkey,
           tokenMint: mintPubkey,
-          solMint: new PublicKey("So11111111111111111111111111111111111111112"),
           recycleProposal: recycleProposalPDA,
-          programAuthority: accounts.programAuthority,
-          userWsolAccount: accounts.userWsolAccountPDA,
           tokenProgram: TOKEN_PROGRAM_ID,
           systemProgram: SystemProgram.programId,
         } as any)
@@ -427,7 +426,22 @@ export async function createRecycleTokenTransaction(
         allLookupTableAddresses.add(address);
       });
 
-      const { swapInstruction } = jupiterResult[0].swapResult;
+      const { swapInstruction, setupInstructions } = jupiterResult[0].swapResult;
+
+      setupInstructions.forEach((setupInstruction: any) => {
+        const setupIx = new TransactionInstruction({
+          programId: new PublicKey(setupInstruction.programId),
+          keys: setupInstruction.accounts.map((key: any) => ({
+            pubkey: new PublicKey(key.pubkey),
+            isSigner: key.isSigner,
+            isWritable: key.isWritable,
+          })),
+          data: Buffer.from(setupInstruction.data, "base64"),
+        });
+        instructions.push(setupIx);
+      })
+      
+      
 
       const swapIx = new TransactionInstruction({
         programId: new PublicKey(swapInstruction.programId),
@@ -442,7 +456,6 @@ export async function createRecycleTokenTransaction(
       instructions.push(swapIx);
 
       // Execute Proposal Instruction
-      console.log(`userWsolAccountPDA: ${accounts.userWsolAccountPDA.toString()}`)
       const executeProposalIx = await program.methods
         .executeRecycleProposal(timestamp)
         .accounts({
@@ -450,8 +463,6 @@ export async function createRecycleTokenTransaction(
           userStats: accounts.userStatsPDA,
           tokenMint: mintPubkey,
           recycleProposal: recycleProposalPDA,
-          programAuthority: accounts.programAuthority,
-          userWsolAccount: accounts.userWsolAccountPDA,
           vault: accounts.vaultPDA,
           label: labelAccount,
           tokenProgram: TOKEN_PROGRAM_ID,
@@ -476,7 +487,6 @@ export async function createRecycleTokenTransaction(
     ).then(accounts => accounts.filter((account): account is AddressLookupTableAccount => account !== null));
 
     const { blockhash } = await connection.getLatestBlockhash();
-
     const messageV0 = new TransactionMessage({
       payerKey: userPubkey,
       recentBlockhash: blockhash,

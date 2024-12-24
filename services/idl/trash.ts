@@ -5,7 +5,7 @@
  * IDL can be found at `target/idl/trash.json`.
  */
 export type Trash = {
-  "address": "5aQg4utyAeyokZSJe5ithgAz3Cw13o9Y43spG3cQqWSb",
+  "address": "BgFw4NEPdqsQkjDqtH2Qbb1aSxK41f95HoRTKJXfMW3x",
   "metadata": {
     "name": "trash",
     "version": "0.1.0",
@@ -33,10 +33,6 @@ export type Trash = {
         },
         {
           "name": "tokenMint"
-        },
-        {
-          "name": "solMint",
-          "address": "So11111111111111111111111111111111111111112"
         },
         {
           "name": "recycleProposal",
@@ -78,58 +74,6 @@ export type Trash = {
               }
             ]
           }
-        },
-        {
-          "name": "programAuthority",
-          "writable": true,
-          "pda": {
-            "seeds": [
-              {
-                "kind": "const",
-                "value": [
-                  65,
-                  85,
-                  84,
-                  72,
-                  79,
-                  82,
-                  73,
-                  84,
-                  89
-                ]
-              }
-            ]
-          }
-        },
-        {
-          "name": "userWsolAccount",
-          "writable": true,
-          "pda": {
-            "seeds": [
-              {
-                "kind": "const",
-                "value": [
-                  85,
-                  83,
-                  69,
-                  82,
-                  95,
-                  87,
-                  83,
-                  79,
-                  76
-                ]
-              },
-              {
-                "kind": "account",
-                "path": "user"
-              }
-            ]
-          }
-        },
-        {
-          "name": "tokenProgram",
-          "address": "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA"
         },
         {
           "name": "systemProgram",
@@ -237,54 +181,6 @@ export type Trash = {
           }
         },
         {
-          "name": "programAuthority",
-          "writable": true,
-          "pda": {
-            "seeds": [
-              {
-                "kind": "const",
-                "value": [
-                  65,
-                  85,
-                  84,
-                  72,
-                  79,
-                  82,
-                  73,
-                  84,
-                  89
-                ]
-              }
-            ]
-          }
-        },
-        {
-          "name": "userWsolAccount",
-          "writable": true,
-          "pda": {
-            "seeds": [
-              {
-                "kind": "const",
-                "value": [
-                  85,
-                  83,
-                  69,
-                  82,
-                  95,
-                  87,
-                  83,
-                  79,
-                  76
-                ]
-              },
-              {
-                "kind": "account",
-                "path": "user"
-              }
-            ]
-          }
-        },
-        {
           "name": "vault",
           "writable": true,
           "pda": {
@@ -323,10 +219,6 @@ export type Trash = {
               }
             ]
           }
-        },
-        {
-          "name": "tokenProgram",
-          "address": "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA"
         },
         {
           "name": "systemProgram",
@@ -452,194 +344,6 @@ export type Trash = {
         }
       ],
       "args": []
-    },
-    {
-      "name": "recycleToken",
-      "discriminator": [
-        2,
-        176,
-        42,
-        217,
-        78,
-        224,
-        113,
-        177
-      ],
-      "accounts": [
-        {
-          "name": "programAuthority",
-          "writable": true,
-          "pda": {
-            "seeds": [
-              {
-                "kind": "const",
-                "value": [
-                  65,
-                  85,
-                  84,
-                  72,
-                  79,
-                  82,
-                  73,
-                  84,
-                  89
-                ]
-              }
-            ]
-          }
-        },
-        {
-          "name": "programWsolAccount",
-          "writable": true,
-          "pda": {
-            "seeds": [
-              {
-                "kind": "const",
-                "value": [
-                  87,
-                  83,
-                  79,
-                  76
-                ]
-              }
-            ]
-          }
-        },
-        {
-          "name": "user",
-          "writable": true,
-          "signer": true
-        },
-        {
-          "name": "userStats",
-          "writable": true,
-          "pda": {
-            "seeds": [
-              {
-                "kind": "const",
-                "value": [
-                  85,
-                  83,
-                  69,
-                  82,
-                  95,
-                  83,
-                  84,
-                  65,
-                  84,
-                  83
-                ]
-              },
-              {
-                "kind": "account",
-                "path": "user"
-              }
-            ]
-          }
-        },
-        {
-          "name": "tokenMint"
-        },
-        {
-          "name": "solMint",
-          "address": "So11111111111111111111111111111111111111112"
-        },
-        {
-          "name": "vault",
-          "writable": true,
-          "pda": {
-            "seeds": [
-              {
-                "kind": "const",
-                "value": [
-                  86,
-                  65,
-                  85,
-                  76,
-                  84
-                ]
-              }
-            ]
-          }
-        },
-        {
-          "name": "label",
-          "optional": true,
-          "pda": {
-            "seeds": [
-              {
-                "kind": "const",
-                "value": [
-                  76,
-                  65,
-                  66,
-                  69,
-                  76
-                ]
-              },
-              {
-                "kind": "account",
-                "path": "tokenMint"
-              }
-            ]
-          }
-        },
-        {
-          "name": "recycleData",
-          "writable": true,
-          "pda": {
-            "seeds": [
-              {
-                "kind": "const",
-                "value": [
-                  82,
-                  69,
-                  67,
-                  89,
-                  67,
-                  76,
-                  69,
-                  95,
-                  68,
-                  65,
-                  84,
-                  65
-                ]
-              },
-              {
-                "kind": "account",
-                "path": "user"
-              },
-              {
-                "kind": "arg",
-                "path": "timestamp"
-              }
-            ]
-          }
-        },
-        {
-          "name": "jupiterProgram",
-          "address": "JUP6LkbZbjS1jKKwapdHNy74zcZ3tLUZoi5QNyVTaV4"
-        },
-        {
-          "name": "tokenProgram",
-          "address": "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA"
-        },
-        {
-          "name": "systemProgram",
-          "address": "11111111111111111111111111111111"
-        }
-      ],
-      "args": [
-        {
-          "name": "timestamp",
-          "type": "i64"
-        },
-        {
-          "name": "jupiterRoute",
-          "type": "bytes"
-        }
-      ]
     },
     {
       "name": "updateAdmin",
@@ -768,83 +472,6 @@ export type Trash = {
       ]
     },
     {
-      "name": "withdrawSolFromAuthority",
-      "discriminator": [
-        133,
-        65,
-        16,
-        167,
-        176,
-        104,
-        196,
-        105
-      ],
-      "accounts": [
-        {
-          "name": "authority",
-          "writable": true,
-          "signer": true,
-          "relations": [
-            "admin"
-          ]
-        },
-        {
-          "name": "receiver",
-          "writable": true
-        },
-        {
-          "name": "admin",
-          "writable": true,
-          "pda": {
-            "seeds": [
-              {
-                "kind": "const",
-                "value": [
-                  65,
-                  68,
-                  77,
-                  73,
-                  78
-                ]
-              }
-            ]
-          }
-        },
-        {
-          "name": "programAuthority",
-          "writable": true,
-          "pda": {
-            "seeds": [
-              {
-                "kind": "const",
-                "value": [
-                  65,
-                  85,
-                  84,
-                  72,
-                  79,
-                  82,
-                  73,
-                  84,
-                  89
-                ]
-              }
-            ]
-          }
-        },
-        {
-          "name": "systemProgram",
-          "address": "11111111111111111111111111111111"
-        }
-      ],
-      "args": [
-        {
-          "name": "amount",
-          "type": "u64"
-        }
-      ]
-    },
-    {
       "name": "withdrawSolFromVault",
       "discriminator": [
         125,
@@ -943,19 +570,6 @@ export type Trash = {
         159,
         10,
         78
-      ]
-    },
-    {
-      "name": "recycleData",
-      "discriminator": [
-        85,
-        207,
-        82,
-        240,
-        110,
-        53,
-        125,
-        251
       ]
     },
     {
@@ -1084,34 +698,6 @@ export type Trash = {
       }
     },
     {
-      "name": "recycleData",
-      "type": {
-        "kind": "struct",
-        "fields": [
-          {
-            "name": "user",
-            "type": "pubkey"
-          },
-          {
-            "name": "tokenMint",
-            "type": "pubkey"
-          },
-          {
-            "name": "solReceived",
-            "type": "u64"
-          },
-          {
-            "name": "pointsEarned",
-            "type": "u64"
-          },
-          {
-            "name": "timestamp",
-            "type": "i64"
-          }
-        ]
-      }
-    },
-    {
       "name": "recycleProposal",
       "type": {
         "kind": "struct",
@@ -1126,6 +712,10 @@ export type Trash = {
           },
           {
             "name": "tokenAmount",
+            "type": "u64"
+          },
+          {
+            "name": "initialSol",
             "type": "u64"
           },
           {
@@ -1190,6 +780,10 @@ export type Trash = {
           },
           {
             "name": "totalSolWithdrawn",
+            "type": "u64"
+          },
+          {
+            "name": "totalPointsSupplied",
             "type": "u64"
           }
         ]
