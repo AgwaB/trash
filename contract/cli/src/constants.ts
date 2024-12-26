@@ -1,0 +1,9 @@
+export const ADMIN_SEED = "ADMIN";
+export const VAULT_SEED = "VAULT";
+export const USER_STATS_SEED = "USER_STATS";
+export const LABEL_SEED = "LABEL";
+export const AUTHORITY_SEED = "AUTHORITY";
+export const WSOL_SEED = "WSOL";
+export const RECYCLE_PROPOSAL_SEED = "RECYCLE_PROPOSAL";
+export const USER_WSOL_SEED = "USER_WSOL";
+export const JUPITER_PROGRAM_ID = "JUP6LkbZbjS1jKKwapdHNy74zcZ3tLUZoi5QNyVTaV4"
