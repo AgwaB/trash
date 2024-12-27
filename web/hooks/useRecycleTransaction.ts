@@ -29,12 +29,10 @@ export function useRecycleTransaction() {
 
   const executeRecycle = async (selectedTokenData: Token[]): Promise<RecycleResult> => {
     try {
-      // 1. 입력 검증
       if (!publicKey || !signTransaction) {
         throw new Error("Wallet not connected")
       }
 
-      // 2. 리사이클 목록 생성
       const recycleList = selectedTokenData
         .filter(token => Number(token.amount) > 0)
         .map(token => {
@@ -52,7 +50,6 @@ export function useRecycleTransaction() {
         throw new Error("No valid tokens selected")
       }
 
-      // 3. 트랜잭션 생성 및 실행
       const result = await createRecycleTokenTransaction(publicKey.toString(), recycleList)
       if (!result.success || !result.serializedTransaction) {
         if (result.code) {
@@ -79,7 +76,6 @@ export function useRecycleTransaction() {
 
       const signedTx = await signTransaction(tx)
       
-      // 4. 트랜잭션 전송 및 확인
       const txId = await connection.sendTransaction(signedTx, {
         skipPreflight: true,
         maxRetries: 3,
@@ -100,7 +96,6 @@ export function useRecycleTransaction() {
     } catch (error: any) {
       console.error("Recycle transaction failed:", error);
       
-      // 에러 메시지 구분
       if (error.message?.includes('block height exceeded')) {
         return {
           success: false,

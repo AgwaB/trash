@@ -93,7 +93,6 @@ export default function TokenItem({ token, index, isMobile, onRecycle }: TokenIt
     )
   }
 
-  // Desktop version remains unchanged
   return (
     <div 
       ref={itemRef}

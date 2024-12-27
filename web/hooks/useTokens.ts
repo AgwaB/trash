@@ -7,7 +7,6 @@ import { getAllLabels } from '@/services/contract'
 import { getTokenDescription } from '@/utils/tokenDescription'
 
 export function useTokens(address: string | undefined) {
-  // 1. 기본 토큰 데이터 가져오기
   const { data: basicTokens, isLoading: isLoadingTokens, mutate: mutateBasicTokens } = useSWR(
     address ? `basic-tokens/${address}` : null,
     async () => {
@@ -24,7 +23,6 @@ export function useTokens(address: string | undefined) {
     }
   )
 
-  // 2. 가격 정보 가져오기
   const { data: prices, isLoading: isLoadingPrices } = useSWR(
     basicTokens ? `token-prices/${basicTokens.map(t => t.id).join(',')}` : null,
     async () => {
@@ -38,7 +36,6 @@ export function useTokens(address: string | undefined) {
     }
   )
 
-  // 3. 라벨 정보 가져오기
   const { data: labels, isLoading: isLoadingLabels } = useSWR(
     'token-labels',
     getAllLabels,
@@ -48,12 +45,10 @@ export function useTokens(address: string | undefined) {
     }
   )
 
-  // 4. 모든 데이터를 조합하여 최종 토큰 목록 생성
   const tokens = useMemo(() => {
     if (!basicTokens || !prices || !labels) return null
 
     return basicTokens.map(token => {
-      // 라벨이 있는 경우 해당 라벨 사용, 없는 경우 주소 기반으로 생성
       const label = labels[token.id] || {
         description: getTokenDescription(token.id),
         multiplier: 1
@@ -78,11 +73,9 @@ export function useTokens(address: string | undefined) {
     isError: !tokens && !isLoading,
     mutate: async (data?: Token[] | ((current: Token[] | null) => Token[] | null)) => {
       if (data) {
-        // 로컬 상태 직접 업데이트
         const currentTokens = tokens;
         const updatedTokens = typeof data === 'function' ? data(currentTokens) : data;
         
-        // 모든 데이터 새로고침
         await Promise.all([
           mutateBasicTokens(undefined, { revalidate: true }),
           globalMutate(`token-prices/${basicTokens?.map(t => t.id).join(',')}`),
@@ -92,7 +85,6 @@ export function useTokens(address: string | undefined) {
         return updatedTokens;
       }
 
-      // 모든 데이터 새로고침
       await Promise.all([
         mutateBasicTokens(undefined, { revalidate: true }),
         basicTokens && globalMutate(`token-prices/${basicTokens.map(t => t.id).join(',')}`),

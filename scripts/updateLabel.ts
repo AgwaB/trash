@@ -45,7 +45,6 @@ export async function updateLabel(
   }
 }
 
-// CLI 실행을 위한 메인 함수
 async function main() {
   const args = process.argv.slice(2);
   if (args.length !== 3) {

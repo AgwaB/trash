@@ -1,4 +1,3 @@
-// services/token.ts
 "use server"
 import { Connection, PublicKey } from "@solana/web3.js"
 import { Metaplex } from "@metaplex-foundation/js"
@@ -11,26 +10,7 @@ import { TOKEN_PROGRAM_ID, TOKEN_2022_PROGRAM_ID, RPC_ENDPOINT, WSOL_MINT } from
 import { sleep } from "@/utils/sleep"
 import { TokenStandard } from '@metaplex-foundation/mpl-token-metadata'
 
-// Token Whitelist Interface
-interface WhitelistedToken {
-  mint: string
-  type: TokenType
-  points: number
-}
-
-// Recent Recycled Interface
-interface RecentRecycled {
-  amount: number
-  symbol: string
-}
-
-// Total Recycled Interface
-interface TotalRecycled {
-  amount: number
-  symbol: string
-}
-
-const CHUNK_SIZE = 5; // 한 번에 처리할 mint 주 수
+const CHUNK_SIZE = 5;
 
 interface TokenMetadata {
   image?: string
@@ -47,7 +27,6 @@ interface JupiterPriceResponse {
   timeTaken: number
 }
 
-// 이미지 URI를 가져오는 기본 함수
 export async function getTokenImageUri(tokenId: string, uri?: string): Promise<string | undefined> {
   if (!uri) return undefined
 
@@ -74,7 +53,6 @@ export async function getTokenImageUri(tokenId: string, uri?: string): Promise<s
   )()
 }
 
-// 기본 토큰 정보만 가져오기
 export async function getSftTokens(ownerAddress: string) {
   try {
     const connection = new Connection(RPC_ENDPOINT)
@@ -89,13 +67,11 @@ export async function getSftTokens(ownerAddress: string) {
       ta => new PublicKey(ta.account.data.parsed.info.mint)
     )
 
-    // Chunk the mint addresses
     const chunks = []
     for (let i = 0; i < mintAddresses.length; i += CHUNK_SIZE) {
       chunks.push(mintAddresses.slice(i, i + CHUNK_SIZE))
     }
 
-    // Process each chunk sequentially
     const metadataList = []
     for (const chunk of chunks) {
       await sleep(50)  // 각 청크 처리 전 딜레이
@@ -108,7 +84,6 @@ export async function getSftTokens(ownerAddress: string) {
         .filter((item): item is any => {
           if (!item) return false
         
-          // NFT 관련 토큰 스탠다��� 필터링
           const nonFungibleTypes = [
             TokenStandard.NonFungible,
             TokenStandard.NonFungibleEdition,
@@ -116,7 +91,6 @@ export async function getSftTokens(ownerAddress: string) {
             TokenStandard.ProgrammableNonFungibleEdition
           ]
           
-          // Option<TokenStandard> 타입 체크
           const tokenStandard = item.tokenStandard
           return !tokenStandard || !nonFungibleTypes.includes(tokenStandard)
         })
@@ -191,7 +165,6 @@ export async function getToken2022s(ownerAddress: string) {
       })
     )
 
-    // null 값 필터링
     return processedTokens.filter((token): token is Token => token !== null)
   } catch (error) {
     console.error('Error in getToken2022s:', error)
@@ -199,7 +172,6 @@ export async function getToken2022s(ownerAddress: string) {
   }
 }
 
-// 가격 정보만 가져오기 (Decimal 대신 string 반환)
 export async function getTokenPrices(tokenIds: string[]): Promise<Record<string, string>> {
   try {
     const cachedPrices = await getCachedPrices(tokenIds)
@@ -242,7 +214,6 @@ export async function getTokenPrices(tokenIds: string[]): Promise<Record<string,
       }
     }
 
-    // 캐시 업데이트 (내부적으로는 Decimal 사용)
     await Promise.all(
       Object.entries(newPrices).map(([tokenId, price]) => 
         updateCachedPrice(tokenId, new Decimal(price))
@@ -263,7 +234,6 @@ export async function getTokenPrices(tokenIds: string[]): Promise<Record<string,
   }
 }
 
-// 개별 토큰 조회 함수
 export async function fetchToken(mintAddress: string): Promise<Token | undefined> {
   try {
     const connection = new Connection(RPC_ENDPOINT)

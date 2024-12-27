@@ -39,7 +39,6 @@ const nextConfig: NextConfig = {
       'arweave.net',
       'www.arweave.net',
       'cdn.helius-rpc.com',
-      // 필요한 다른 도메인들 추가
     ],
   },
   reactStrictMode: true,

@@ -40,7 +40,6 @@ export function useRecentRecycles() {
           return
         }
 
-        // TODO: recycleData 업데이트 후 처리
         const rawAmount = BigInt(latestRecycle.tokenAmount)
         const decimals = BigInt(token.decimals || 0)
         const divisor = BigInt(10) ** decimals

@@ -7,7 +7,6 @@ async function getUserRecycleData(userPubkey: PublicKey) {
   const { program } = getProgramInstance();
 
   try {
-    // 1. User Stats 조회
     const [userStatsPDA] = PublicKey.findProgramAddressSync(
       [Buffer.from("USER_STATS"), userPubkey.toBuffer()],
       program.programId

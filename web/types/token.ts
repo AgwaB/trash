@@ -21,7 +21,6 @@ export interface Token {
   multiplier: string
 }
 
-// Token Whitelist Description
 export enum TokenDescription {
     RUG = "Rug",
     TRASH = "Trash",

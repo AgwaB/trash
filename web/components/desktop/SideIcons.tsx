@@ -3,7 +3,7 @@ import Image from 'next/image'
 
 export default function SideIcons() {
   const handleXClick = () => {
-    window.open('https://x.com/', '_blank')
+    window.open('https://x.com/trashd0tmeme', '_blank')
   }
 
   return (

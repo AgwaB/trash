@@ -20,7 +20,6 @@ async function getProgram(wallet?: Wallet) {
   return new Program<Trash>(IDL as Trash, provider)
 }
 
-// PDA 주소 가져오기 함수들
 export async function getAdminPDA(): Promise<PublicKey> {
   const [pda] = await PublicKey.findProgramAddressSync(
     [Buffer.from(SEEDS.ADMIN)],
@@ -61,7 +60,6 @@ export async function getRecycleDataPDA(user: PublicKey, mint: PublicKey): Promi
   return pda
 }
 
-// 컨트랙트 데이터 조회 함수들
 export async function fetchUserStats(userAddress: string) {
   try {
     const userPubkey = new PublicKey(userAddress)
@@ -106,7 +104,6 @@ export async function fetchVaultInfo() {
   }
 }
 
-// 최근 리사이클 데이터 조회
 export async function fetchRecentRecycles(limit: number = 10) {
   try {
     const program = await getProgram()
@@ -131,7 +128,6 @@ export async function fetchRecentRecycles(limit: number = 10) {
   }
 }
 
-// userStats 초기화 함수 추가
 async function initializeUserStats(userPubkey: PublicKey, program: Program<Trash>) {
   const [userStatsPDA] = PublicKey.findProgramAddressSync(
     [Buffer.from(SEEDS.USER_STATS), userPubkey.toBuffer()],
@@ -166,7 +162,6 @@ async function prepareRecycleAccounts(
   recycleList: RecycleTokenInput[],
   program: Program<Trash>
 ) {
-  // 기존 PDA 계정들
   const [userStatsPDA] = PublicKey.findProgramAddressSync(
     [Buffer.from(SEEDS.USER_STATS), userPubkey.toBuffer()],
     PROGRAM_ID
@@ -192,7 +187,6 @@ async function prepareRecycleAccounts(
     PROGRAM_ID
   );
 
-  // 새로운 PDA 계정들
   const recycleProposals = await Promise.all(
     recycleList.map(async ({ mint }) => {
       const mintPubkey = new PublicKey(mint);
@@ -227,7 +221,6 @@ async function prepareRecycleAccounts(
     })
   );
 
-  // userStats 초기화 확인
   let initIx = null;
   try {
     await program.account.userStats.fetch(userStatsPDA);
@@ -260,7 +253,6 @@ async function getJupiterInstructions(
 
   const jupiterResults = await Promise.all(recycleList.map(async ({ mint, amount }) => {
     try {
-      // Quote 가져오기
       const quoteResponse = await (
         await fetch(
           `https://quote-api.jup.ag/v6/quote?` + new URLSearchParams({
@@ -286,7 +278,6 @@ async function getJupiterInstructions(
 
       quoteResponse.swapType = "aggregator"
 
-      // Swap Instructions 가져오기 - 우선순위 수수료 추가
       const swapResult = await (
         await fetch('https://quote-api.jup.ag/v6/swap-instructions', {
           method: 'POST',
@@ -334,7 +325,6 @@ async function getJupiterInstructions(
         throw error;
       }
       
-      // error가 Error 인스턴스인 경우
       if (error instanceof Error) {
         throw new RecycleError(
           RecycleErrorCode.UNKNOWN,
@@ -342,7 +332,6 @@ async function getJupiterInstructions(
         );
       }
       
-      // 그 외의 경우
       throw new RecycleError(
         RecycleErrorCode.UNKNOWN,
         'Unknown error occurred'
@@ -360,7 +349,7 @@ export async function createRecycleTokenTransaction(
   success: boolean; 
   serializedTransaction?: string; 
   error?: string;
-  code?: RecycleErrorCode;  // 반환 타입에 code 추가
+  code?: RecycleErrorCode; 
 }> {
   try {
     const userPubkey = new PublicKey(userAddress);
@@ -368,7 +357,6 @@ export async function createRecycleTokenTransaction(
     const program = await getProgram();
     const timestamp = new BN(Math.floor(Date.now() / 1000));
 
-    // 1. 모든 계정 정보 미리 준비
     const accounts = await prepareRecycleAccounts(
       userPubkey,
       timestamp,
@@ -376,18 +364,15 @@ export async function createRecycleTokenTransaction(
       program
     );
 
-    // 2. Instructions 생성
     let instructions = accounts.initIx ? [accounts.initIx] : [];
     let jupiterResults = [];
     let allLookupTableAddresses = new Set<string>();
 
-    // ComputeBudget instruction 추가
     const modifyComputeUnits = ComputeBudgetProgram.setComputeUnitLimit({ 
       units: 1_400_000
     });
     instructions.push(modifyComputeUnits);
 
-    // 각 토큰에 대해 처리
     for (let i = 0; i < recycleList.length; i++) {
       const { mint, amount } = recycleList[i];
       const {
@@ -413,7 +398,6 @@ export async function createRecycleTokenTransaction(
 
       instructions.push(createProposalIx);
 
-      // Jupiter Swap Instructions
       const jupiterResult = await getJupiterInstructions(
         [{ mint, amount }], 
         userAddress,
@@ -421,7 +405,6 @@ export async function createRecycleTokenTransaction(
       );
       jupiterResults.push(jupiterResult[0]);
 
-      // Lookup table addresses 수집
       jupiterResult[0].swapResult.addressLookupTableAddresses.forEach((address: string) => {
         allLookupTableAddresses.add(address);
       });
@@ -455,7 +438,6 @@ export async function createRecycleTokenTransaction(
 
       instructions.push(swapIx);
 
-      // Execute Proposal Instruction
       const executeProposalIx = await program.methods
         .executeRecycleProposal(timestamp)
         .accounts({
@@ -473,8 +455,6 @@ export async function createRecycleTokenTransaction(
       instructions.push(executeProposalIx);
     }
 
-    // 3. 트랜잭션 구성
-    // 모든 lookup table 계정 가져오기
     const addressLookupTableAccounts = await Promise.all(
       Array.from(allLookupTableAddresses).map(async (address: string) => {
         const accountInfo = await connection.getAccountInfo(new PublicKey(address));
@@ -525,7 +505,6 @@ export async function createRecycleTokenTransaction(
   }
 }
 
-// 특정 사용자의 리사이클 히스토리 조회
 export async function getUserRecycleHistory(userAddress: string) {
   try {
     const program = await getProgram()

@@ -25,7 +25,6 @@ export default function TableHeader({ isMobile = false }: TableHeaderProps) {
     )
   }
 
-  // Desktop version remains unchanged
   return (
     <div className="flex w-full h-[39px] border-b-2 border-[#504DD7] bg-white">
       <div className="
