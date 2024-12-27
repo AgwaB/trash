@@ -1,7 +1,5 @@
 import { PublicKey } from '@solana/web3.js';
-import { getProgramInstance } from './utils';
-import * as fs from 'fs';
-import * as path from 'path';
+import { getProgramInstance, saveDataToFile } from './utils';
 
 async function getUserRecycleData(userPubkey: PublicKey) {
   const { program } = getProgramInstance();
@@ -65,16 +63,7 @@ async function main() {
   const result = await getUserRecycleData(userPubkey);
   
   if (result) {
-    const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
-    const dataDir = path.join(__dirname, 'data');
-    
-    if (!fs.existsSync(dataDir)) {
-      fs.mkdirSync(dataDir);
-    }
-    
-    const filePath = path.join(dataDir, `user-${args[0]}-${timestamp}.json`);
-    fs.writeFileSync(filePath, JSON.stringify(result, null, 2));
-    
+    const filePath = saveDataToFile(result, `user-${args[0]}-recycle`);
     console.log(`Data saved to: ${filePath}`);
     console.log(`Total proposals: ${result.proposals.length}`);
     console.log(`User stats: ${JSON.stringify(result.userStats, null, 2)}`);
@@ -83,4 +72,6 @@ async function main() {
 
 if (require.main === module) {
   main().catch(console.error);
-} 
+}
+
+export { getUserRecycleData }; 

@@ -1,6 +1,4 @@
-import { getProgramInstance } from './utils';
-import * as fs from 'fs';
-import * as path from 'path';
+import { getProgramInstance, saveDataToFile } from './utils';
 
 async function getAllRecycleProposals() {
   const { program } = getProgramInstance();
@@ -36,16 +34,7 @@ async function main() {
   const result = await getAllRecycleProposals();
   
   if (result) {
-    const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
-    const dataDir = path.join(__dirname, 'data');
-    
-    if (!fs.existsSync(dataDir)) {
-      fs.mkdirSync(dataDir);
-    }
-    
-    const filePath = path.join(dataDir, `recycle-data-${timestamp}.json`);
-    fs.writeFileSync(filePath, JSON.stringify(result, null, 2));
-    
+    const filePath = saveDataToFile(result, 'recycle-proposals');
     console.log(`Data saved to: ${filePath}`);
     console.log(`Total proposals: ${result.length}`);
   }
@@ -53,4 +42,6 @@ async function main() {
 
 if (require.main === module) {
   main().catch(console.error);
-} 
+}
+
+export { getAllRecycleProposals }; 

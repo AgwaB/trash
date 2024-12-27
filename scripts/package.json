@@ -5,7 +5,8 @@
   "scripts": {
     "update-label": "ts-node updateLabel.ts",
     "get-all-recycle": "ts-node getAllRecycleData.ts",
-    "get-user-recycle": "ts-node getUserRecycleData.ts"
+    "get-user-recycle": "ts-node getUserRecycleData.ts",
+    "get-all-labels": "ts-node getAllLabel.ts"
   },
   "keywords": [],
   "author": "",

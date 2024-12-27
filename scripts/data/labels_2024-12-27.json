@@ -1,0 +1,16 @@
+[
+  {
+    "address": "4ihT8oqSmFki6G6K2qvgpH3Cb2JQWYmoG6kE25bnwBMo",
+    "mint": "5FuRRJKNYgskihwURkHPfnsQYa6RXFCk9AeoNqTbmoon",
+    "name": "Shiny",
+    "multiplier": "1500",
+    "multiplierInSol": "0.000001500"
+  },
+  {
+    "address": "Dsd8jegSz3dNVntZsXQChtjh7tK6Hg15FsP1Z4eyStGg",
+    "mint": "7GCihgDB8fe6KNjn2MYtkzZcRjQy3t9GHdC8uHYmW2hr",
+    "name": "Shiny Trash",
+    "multiplier": "2",
+    "multiplierInSol": "0.000000002"
+  }
+]

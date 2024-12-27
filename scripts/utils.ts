@@ -4,6 +4,8 @@ import { Trash } from './trash';
 import IdlJson from './trash.json';
 import bs58 from 'bs58';
 import * as dotenv from 'dotenv';
+import path from 'path';
+import fs from 'fs';
 
 dotenv.config();
 
@@ -46,4 +48,21 @@ export const solToLamports = (sol: number): number => {
 
 export const formatDate = (timestamp: number): string => {
   return new Date(timestamp * 1000).toISOString();
+};
+
+export const saveDataToFile = (
+  data: any, 
+  filename: string, 
+  subdirectory: string = 'data'
+) => {
+  const timestamp = new Date().toISOString().split('T')[0];
+  const outputDir = path.join(__dirname, subdirectory);
+  const outputPath = path.join(outputDir, `${filename}_${timestamp}.json`);
+
+  if (!fs.existsSync(outputDir)) {
+    fs.mkdirSync(outputDir);
+  }
+
+  fs.writeFileSync(outputPath, JSON.stringify(data, null, 2));
+  return outputPath;
 }; 
