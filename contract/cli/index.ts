@@ -14,8 +14,8 @@ dotenv.config();
 
 function main() {
     try {
-        // // Initialize the program
-        // initialize();
+        // Initialize the program
+        initialize();
 
         // // Update the admin
         // const newAuthority = new PublicKey("7GCihgDB8fe6KNjn2MYtkzZcRjQy3t9GHdC8uHYmW2hr");
@@ -41,12 +41,12 @@ function main() {
         // const tokenMint = new PublicKey("7GCihgDB8fe6KNjn2MYtkzZcRjQy3t9GHdC8uHYmW2hr");
         // const tokenAmount = 1000;
 
-        const tokenMint = new PublicKey("5FuRRJKNYgskihwURkHPfnsQYa6RXFCk9AeoNqTbmoon");
-        const tokenAmount = 1000000000;
+        // const tokenMint = new PublicKey("5FuRRJKNYgskihwURkHPfnsQYa6RXFCk9AeoNqTbmoon");
+        // const tokenAmount = 1000000000;
 
-        const timestamp = Math.floor(Date.now() / 1000);
-        // const timestamp = 1734973271;
-        recycleTokenV2(tokenMint, tokenAmount, timestamp);
+        // const timestamp = Math.floor(Date.now() / 1000);
+        // // const timestamp = 1734973271;
+        // recycleTokenV2(tokenMint, tokenAmount, timestamp);
     } catch (error) {
         console.error('Error occurred:', error);
     }
