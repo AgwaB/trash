@@ -314,6 +314,13 @@ async function getJupiterInstructions(
         );
       }
 
+      if (swapResult.simulationError) {
+        throw new RecycleError(
+          RecycleErrorCode.INVALID_SWAP,
+          `Failed to simulate swap in jupiter: ${swapResult.simulationError.error}`
+        );
+      }
+
       if (!swapResult.setupInstructions || !swapResult.swapInstruction || !swapResult.addressLookupTableAddresses) {
         throw new RecycleError(
           RecycleErrorCode.INVALID_SWAP,
