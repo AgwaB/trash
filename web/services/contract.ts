@@ -300,7 +300,6 @@ async function getJupiterInstructions(
       ).json();
 
       if (swapResult.error) {
-        console.log(`swapResult: ${JSON.stringify(swapResult)}`)
         if (swapResult.errorCode === 'NOT_SUPPORTED') {
           throw new RecycleError(
             RecycleErrorCode.NOT_SUPPORTED,
@@ -314,7 +313,6 @@ async function getJupiterInstructions(
       }
 
       if (swapResult.simulationError) {
-        console.log(`swapResult: ${JSON.stringify(swapResult.simulationError)}`)
         throw new RecycleError(
           RecycleErrorCode.INVALID_SWAP,
           `Failed to simulate swap in jupiter: ${swapResult.simulationError.error}`
