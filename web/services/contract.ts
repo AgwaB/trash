@@ -288,7 +288,7 @@ async function getJupiterInstructions(
             wrapUnwrapSOL: true,
             dynamicComputeUnitLimit: true,
             // computeUnitPriceMicroLamports: 50000000,
-            allowOptimizedWrappedSolTokenAccount: true,
+            // allowOptimizedWrappedSolTokenAccount: true,
             asLegacyTransaction: false,
             correctLastValidBlockHeight: true,
             prioritizationFeeLamports: {
