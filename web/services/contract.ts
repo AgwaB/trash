@@ -285,12 +285,12 @@ async function getJupiterInstructions(
           body: JSON.stringify({
             quoteResponse,
             userPublicKey: userAddress,
-            // allowOptimizedWrappedSolTokenAccount: true,
-            // correctLastValidBlockHeight: true,
+            wrapUnwrapSOL: true,
+            dynamicComputeUnitLimit: true,
+            computeUnitPriceMicroLamports: 50000000,
+            allowOptimizedWrappedSolTokenAccount: true,
             asLegacyTransaction: true,
-            dynamicComputeUnitLimit: false,
-            computeUnitLimit: 1400000,  // 명시적 CU 제한
-            computeUnitPrice: 1000,     // 고정 CU 가격
+            correctLastValidBlockHeight: true,
             wrapAndUnwrapSol: true,
             // prioritizationFeeLamports: {
             //   autoMultiplier: 1
