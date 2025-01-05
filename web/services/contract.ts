@@ -15,7 +15,7 @@ async function getProgram(wallet?: Wallet) {
   const provider = new AnchorProvider(
     connection,
     wallet || {} as any,
-    { commitment: 'processed' }
+    { commitment: 'confirmed' }
   )
   return new Program<Trash>(IDL as Trash, provider)
 }
