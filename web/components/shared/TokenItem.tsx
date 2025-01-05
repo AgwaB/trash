@@ -36,7 +36,6 @@ export default function TokenItem({ token, index, isMobile, onRecycle }: TokenIt
     return predefinedImage || token.imageUri || "/images/default-token-list.png"
   }
 
-  console.log(`token ${token.symbol} multiplier: ${token.multiplier}`)
   const isSpecialToken = Number(token.multiplier) > 1
   const points = calculateTokenPoints(token)
 

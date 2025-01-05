@@ -263,7 +263,7 @@ async function getJupiterInstructions(
             onlyDirectRoutes: "false",
             swapMode: "ExactIn",
             swapType: "aggregator",
-            asLegacyTransaction: "false",
+            asLegacyTransaction: "true",
             maxAccounts: "64",
           })
         )
@@ -285,14 +285,16 @@ async function getJupiterInstructions(
           body: JSON.stringify({
             quoteResponse,
             userPublicKey: userAddress,
-            allowOptimizedWrappedSolTokenAccount: true,
-            correctLastValidBlockHeight: true,
-            asLegacyTransaction: false,
-            dynamicComputeUnitLimit: true,
+            // allowOptimizedWrappedSolTokenAccount: true,
+            // correctLastValidBlockHeight: true,
+            asLegacyTransaction: true,
+            dynamicComputeUnitLimit: false,
+            computeUnitLimit: 1400000,  // 명시적 CU 제한
+            computeUnitPrice: 1000,     // 고정 CU 가격
             wrapAndUnwrapSol: true,
-            prioritizationFeeLamports: {
-              autoMultiplier: 1
-            },
+            // prioritizationFeeLamports: {
+            //   autoMultiplier: 1
+            // },
             dynamicSlippage: { maxBps: 500 }
           })
         })
