@@ -9,7 +9,12 @@ import { Wallet } from '@coral-xyz/anchor'
 import { PROGRAM_ID, RPC_ENDPOINT, SEEDS } from '@/config'
 import { RecycleErrorCode, RecycleError } from '@/types/error'
 
-const connection = new Connection(RPC_ENDPOINT)
+const connection = new Connection(RPC_ENDPOINT,
+  {
+    commitment: "confirmed",
+    confirmTransactionInitialTimeout: 120000
+  }
+)
 
 async function getProgram(wallet?: Wallet) {
   const provider = new AnchorProvider(
@@ -17,6 +22,8 @@ async function getProgram(wallet?: Wallet) {
     wallet || {} as any,
     { commitment: 'confirmed' }
   )
+  IDL.address = PROGRAM_ID.toString()
+  
   return new Program<Trash>(IDL as Trash, provider)
 }
 
@@ -259,12 +266,12 @@ async function getJupiterInstructions(
             inputMint: mint,
             outputMint: NATIVE_MINT,
             amount: amount,
-            dynamicSlippage: "true",
-            onlyDirectRoutes: "false",
+            slippageBps: "500",
+            // onlyDirectRoutes: "false",
             swapMode: "ExactIn",
             swapType: "aggregator",
-            asLegacyTransaction: "false",
-            maxAccounts: "64",
+            // asLegacyTransaction: "false",
+            // maxAccounts: "64",
           })
         )
       ).json();
@@ -285,14 +292,13 @@ async function getJupiterInstructions(
           body: JSON.stringify({
             quoteResponse,
             userPublicKey: userAddress,
-            wrapUnwrapSOL: true,
+            wrapAndUnwrapSol: true,
             dynamicComputeUnitLimit: true,
             // computeUnitPriceMicroLamports: 50000000,
             // allowOptimizedWrappedSolTokenAccount: true,
             asLegacyTransaction: false,
-            correctLastValidBlockHeight: true,
             prioritizationFeeLamports: {
-              autoMultiplier: 2
+              autoMultiplier: 10,
             },
             dynamicSlippage: { maxBps: 500 }
           })
@@ -319,7 +325,7 @@ async function getJupiterInstructions(
         );
       }
 
-      if (!swapResult.setupInstructions || !swapResult.swapInstruction || !swapResult.addressLookupTableAddresses) {
+      if (!swapResult.setupInstructions || !swapResult.computeBudgetInstructions || !swapResult.swapInstruction || !swapResult.addressLookupTableAddresses) {
         throw new RecycleError(
           RecycleErrorCode.INVALID_SWAP,
           `Invalid swap instruction for token ${mint}`
@@ -375,10 +381,10 @@ export async function createRecycleTokenTransaction(
     let jupiterResults = [];
     let allLookupTableAddresses = new Set<string>();
 
-    const modifyComputeUnits = ComputeBudgetProgram.setComputeUnitLimit({ 
-      units: 1_400_000
-    });
-    instructions.push(modifyComputeUnits);
+    // const modifyComputeUnits = ComputeBudgetProgram.setComputeUnitLimit({ 
+    //   units: 1_400_000
+    // });
+    // instructions.push(modifyComputeUnits);
 
     for (let i = 0; i < recycleList.length; i++) {
       const { mint, amount } = recycleList[i];
@@ -416,7 +422,7 @@ export async function createRecycleTokenTransaction(
         allLookupTableAddresses.add(address);
       });
 
-      const { swapInstruction, setupInstructions } = jupiterResult[0].swapResult;
+      const { swapInstruction, setupInstructions, computeBudgetInstructions } = jupiterResult[0].swapResult;
 
       setupInstructions.forEach((setupInstruction: any) => {
         const setupIx = new TransactionInstruction({
@@ -430,8 +436,19 @@ export async function createRecycleTokenTransaction(
         });
         instructions.push(setupIx);
       })
-      
-      
+
+      computeBudgetInstructions.forEach((computeBudgetInstruction: any) => {
+        const computeBudgetIx = new TransactionInstruction({
+          programId: new PublicKey(computeBudgetInstruction.programId),
+          keys: computeBudgetInstruction.accounts.map((key: any) => ({
+            pubkey: new PublicKey(key.pubkey),
+            isSigner: key.isSigner,
+            isWritable: key.isWritable,
+          })),
+          data: Buffer.from(computeBudgetInstruction.data, "base64"),
+        });
+        instructions.push(computeBudgetIx);
+      })
 
       const swapIx = new TransactionInstruction({
         programId: new PublicKey(swapInstruction.programId),
