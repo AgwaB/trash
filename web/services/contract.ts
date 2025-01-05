@@ -15,7 +15,7 @@ async function getProgram(wallet?: Wallet) {
   const provider = new AnchorProvider(
     connection,
     wallet || {} as any,
-    { commitment: 'confirmed' }
+    { commitment: 'processed' }
   )
   return new Program<Trash>(IDL as Trash, provider)
 }
@@ -287,13 +287,13 @@ async function getJupiterInstructions(
             userPublicKey: userAddress,
             wrapUnwrapSOL: true,
             dynamicComputeUnitLimit: true,
-            computeUnitPriceMicroLamports: 50000000,
+            // computeUnitPriceMicroLamports: 50000000,
             allowOptimizedWrappedSolTokenAccount: true,
             asLegacyTransaction: false,
             correctLastValidBlockHeight: true,
-            // prioritizationFeeLamports: {
-            //   autoMultiplier: 1
-            // },
+            prioritizationFeeLamports: {
+              autoMultiplier: 2
+            },
             dynamicSlippage: { maxBps: 500 }
           })
         })
