@@ -263,7 +263,7 @@ async function getJupiterInstructions(
             onlyDirectRoutes: "false",
             swapMode: "ExactIn",
             swapType: "aggregator",
-            asLegacyTransaction: "true",
+            asLegacyTransaction: "false",
             maxAccounts: "64",
           })
         )
@@ -289,7 +289,7 @@ async function getJupiterInstructions(
             dynamicComputeUnitLimit: true,
             computeUnitPriceMicroLamports: 50000000,
             allowOptimizedWrappedSolTokenAccount: true,
-            asLegacyTransaction: true,
+            asLegacyTransaction: false,
             correctLastValidBlockHeight: true,
             wrapAndUnwrapSol: true,
             // prioritizationFeeLamports: {
