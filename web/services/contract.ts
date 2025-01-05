@@ -291,7 +291,6 @@ async function getJupiterInstructions(
             allowOptimizedWrappedSolTokenAccount: true,
             asLegacyTransaction: false,
             correctLastValidBlockHeight: true,
-            wrapAndUnwrapSol: true,
             // prioritizationFeeLamports: {
             //   autoMultiplier: 1
             // },
@@ -315,6 +314,7 @@ async function getJupiterInstructions(
       }
 
       if (swapResult.simulationError) {
+        console.log(`swapResult: ${JSON.stringify(swapResult.simulationError)}`)
         throw new RecycleError(
           RecycleErrorCode.INVALID_SWAP,
           `Failed to simulate swap in jupiter: ${swapResult.simulationError.error}`
