@@ -53,7 +53,7 @@ export function useRecycleTransaction() {
       const result = await createRecycleTokenTransaction(publicKey.toString(), recycleList)
       if (!result.success || !result.serializedTransaction) {
         if (result.code) {
-          console.error(`error: ${result}`)
+          console.error(`error: ${JSON.stringify(result)}`)
           switch (result.code) {
             case RecycleErrorCode.NOT_SUPPORTED:
               throw new Error("This token cannot be recycled at the moment. Please try another token.");
