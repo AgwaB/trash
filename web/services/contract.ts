@@ -23,7 +23,7 @@ async function getProgram(wallet?: Wallet) {
     { commitment: 'confirmed' }
   )
   IDL.address = PROGRAM_ID.toString()
-  
+
   return new Program<Trash>(IDL as Trash, provider)
 }
 
@@ -266,7 +266,7 @@ async function getJupiterInstructions(
             inputMint: mint,
             outputMint: NATIVE_MINT,
             amount: amount,
-            slippageBps: "500",
+            slippageBps: "1000",
             // onlyDirectRoutes: "false",
             swapMode: "ExactIn",
             swapType: "aggregator",
@@ -298,9 +298,9 @@ async function getJupiterInstructions(
             // allowOptimizedWrappedSolTokenAccount: true,
             asLegacyTransaction: false,
             prioritizationFeeLamports: {
-              autoMultiplier: 10,
+              autoMultiplier: 20,
             },
-            dynamicSlippage: { maxBps: 500 }
+            dynamicSlippage: { maxBps: 1000 }
           })
         })
       ).json();
