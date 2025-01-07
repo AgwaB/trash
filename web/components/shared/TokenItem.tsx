@@ -18,11 +18,18 @@ export default function TokenItem({ token, index, isMobile, onRecycle }: TokenIt
   const [hoverPosition, setHoverPosition] = useState({ x: 0, y: 0 })
   const itemRef = useRef<HTMLDivElement>(null)
 
-  const handleMouseEnter = (e: React.MouseEvent) => {
-    setHoverPosition({
-      x: e.clientX,
-      y: e.clientY
-    })
+  const handleMouseEnter = () => {
+    if (itemRef.current) {
+      const rect = itemRef.current.getBoundingClientRect()
+      // 아이템의 중앙 좌표 계산
+      const centerX = rect.left + rect.width / 2
+      const centerY = rect.top + rect.height / 2
+      
+      setHoverPosition({
+        x: centerX,
+        y: centerY
+      })
+    }
     setShowHoverCard(true)
   }
 
