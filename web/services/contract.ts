@@ -266,35 +266,18 @@ async function getJupiterInstructions(
             inputMint: mint,
             outputMint: NATIVE_MINT,
             amount: amount,
-            slippageBps: "1000",
-            onlyDirectRoutes: "true",
-            swapMode: "ExactIn",
-            swapType: "aggregator",
-            asLegacyTransaction: "false",
+            // slippageBps: "1000",
+            // onlyDirectRoutes: "true",
+            // swapMode: "ExactIn",
+            // swapType: "aggregator",
+            // asLegacyTransaction: "false",
+            // maxAccounts: "64",
+            slippageBps: "100",
+            asLegacyTransaction: "true",  // 더 간단한 legacy transaction format 사용
             maxAccounts: "64",
           })
         )
       ).json();
-
-      console.log(`quoteResponse ${JSON.stringify(quoteResponse)}`)
-      if (quoteResponse.error) {
-        console.log(`Direct route failed for ${mint}, trying all routes...`);
-        quoteResponse = await (
-          await fetch(
-            `https://quote-api.jup.ag/v6/quote?` + new URLSearchParams({
-              inputMint: mint,
-              outputMint: NATIVE_MINT,
-              amount: amount,
-              slippageBps: "1000",
-              onlyDirectRoutes: "false",
-              swapMode: "ExactIn",
-              swapType: "aggregator",
-              asLegacyTransaction: "false",
-              maxAccounts: "64",
-            })
-          )
-        ).json();
-      }
 
       if (quoteResponse.error) {
         throw new RecycleError(
@@ -313,11 +296,14 @@ async function getJupiterInstructions(
             quoteResponse,
             userPublicKey: userAddress,
             wrapAndUnwrapSol: true,
+            // dynamicComputeUnitLimit: true,
+            // prioritizationFeeLamports: {
+            //   autoMultiplier: 10,
+            // },
+            // dynamicSlippage: { maxBps: 1000 }
+            computeUnitPriceMicroLamports: "auto",
+            asLegacyTransaction: true,
             dynamicComputeUnitLimit: true,
-            prioritizationFeeLamports: {
-              autoMultiplier: 10,
-            },
-            dynamicSlippage: { maxBps: 1000 }
           })
         })
       ).json();
@@ -335,14 +321,19 @@ async function getJupiterInstructions(
         );
       }
 
-      if (swapResult.simulationError) {
-        throw new RecycleError(
-          RecycleErrorCode.INVALID_SWAP,
-          `Failed to simulate swap in jupiter: ${swapResult.simulationError.error}`
-        );
-      }
+      // if (swapResult.simulationError) {
+      //   throw new RecycleError(
+      //     RecycleErrorCode.INVALID_SWAP,
+      //     `Failed to simulate swap in jupiter: ${swapResult.simulationError.error}`
+      //   );
+      // }
 
-      if (!swapResult.setupInstructions || !swapResult.computeBudgetInstructions || !swapResult.swapInstruction || !swapResult.addressLookupTableAddresses) {
+      if (!swapResult.setupInstructions 
+        || !swapResult.computeBudgetInstructions 
+        || !swapResult.swapInstruction 
+        || !swapResult.cleanupInstruction 
+        || !swapResult.addressLookupTableAddresses
+      ) {
         throw new RecycleError(
           RecycleErrorCode.INVALID_SWAP,
           `Invalid swap instruction for token ${mint}`
@@ -398,13 +389,13 @@ export async function createRecycleTokenTransaction(
     let jupiterResults = [];
     let allLookupTableAddresses = new Set<string>();
 
-    const modifyComputeUnits = ComputeBudgetProgram.setComputeUnitLimit({ 
-      units: 1_400_000  
-    });
-    const priorityFee = ComputeBudgetProgram.setComputeUnitPrice({
-      microLamports: 2500000
-    });
-    instructions.push(modifyComputeUnits, priorityFee);
+    // const modifyComputeUnits = ComputeBudgetProgram.setComputeUnitLimit({ 
+    //   units: 1_400_000  
+    // });
+    // const priorityFee = ComputeBudgetProgram.setComputeUnitPrice({
+    //   microLamports: 2500000
+    // });
+    // instructions.push(modifyComputeUnits, priorityFee);
 
     for (let i = 0; i < recycleList.length; i++) {
       const { mint, amount } = recycleList[i];
@@ -442,7 +433,7 @@ export async function createRecycleTokenTransaction(
         allLookupTableAddresses.add(address);
       });
 
-      const { swapInstruction, setupInstructions, computeBudgetInstructions } = jupiterResult[0].swapResult;
+      const { swapInstruction, setupInstructions, computeBudgetInstructions, cleanupInstruction } = jupiterResult[0].swapResult;
 
       setupInstructions.forEach((setupInstruction: any) => {
         const setupIx = new TransactionInstruction({
@@ -457,18 +448,30 @@ export async function createRecycleTokenTransaction(
         instructions.push(setupIx);
       })
 
-      // computeBudgetInstructions.forEach((computeBudgetInstruction: any) => {
-      //   const computeBudgetIx = new TransactionInstruction({
-      //     programId: new PublicKey(computeBudgetInstruction.programId),
-      //     keys: computeBudgetInstruction.accounts.map((key: any) => ({
-      //       pubkey: new PublicKey(key.pubkey),
-      //       isSigner: key.isSigner,
-      //       isWritable: key.isWritable,
-      //     })),
-      //     data: Buffer.from(computeBudgetInstruction.data, "base64"),
-      //   });
-      //   instructions.push(computeBudgetIx);
-      // })
+      computeBudgetInstructions.forEach((computeBudgetInstruction: any) => {
+        const computeBudgetIx = new TransactionInstruction({
+          programId: new PublicKey(computeBudgetInstruction.programId),
+          keys: computeBudgetInstruction.accounts.map((key: any) => ({
+            pubkey: new PublicKey(key.pubkey),
+            isSigner: key.isSigner,
+            isWritable: key.isWritable,
+          })),
+          data: Buffer.from(computeBudgetInstruction.data, "base64"),
+        });
+        instructions.push(computeBudgetIx);
+      })
+
+      const cleanupIx = new TransactionInstruction({
+        programId: new PublicKey(cleanupInstruction.programId),
+        keys: cleanupInstruction.accounts.map((key: any) => ({
+          pubkey: new PublicKey(key.pubkey),
+          isSigner: key.isSigner,
+          isWritable: key.isWritable,
+        })),
+        data: Buffer.from(cleanupInstruction.data, "base64"),
+      });
+
+      instructions.push(cleanupIx);
 
       const swapIx = new TransactionInstruction({
         programId: new PublicKey(swapInstruction.programId),
