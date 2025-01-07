@@ -5,7 +5,7 @@
  * IDL can be found at `target/idl/trash.json`.
  */
 export type Trash = {
-  "address": "BgFw4NEPdqsQkjDqtH2Qbb1aSxK41f95HoRTKJXfMW3x",
+  "address": "8PGdyZc62MvKfWF8gQETB8cUQhFBL9BLMGuoS4sFZLJp",
   "metadata": {
     "name": "trash",
     "version": "0.1.0",

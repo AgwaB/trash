@@ -276,6 +276,7 @@ async function getJupiterInstructions(
         )
       ).json();
 
+      console.log(`quoteResponse ${JSON.stringify(quoteResponse)}`)
       if (quoteResponse.error) {
         console.log(`Direct route failed for ${mint}, trying all routes...`);
         quoteResponse = await (
@@ -401,7 +402,7 @@ export async function createRecycleTokenTransaction(
       units: 1_400_000  
     });
     const priorityFee = ComputeBudgetProgram.setComputeUnitPrice({
-      microLamports: 500000
+      microLamports: 5000000
     });
     instructions.push(modifyComputeUnits, priorityFee);
 
@@ -517,10 +518,17 @@ export async function createRecycleTokenTransaction(
     }).compileToV0Message(addressLookupTableAccounts);
 
     const transaction = new VersionedTransaction(messageV0);
+    const serializedSize = transaction.serialize().length;
+    console.log(`Transaction size: ${serializedSize} bytes`);
+
+    // Solana의 트랜잭션 크기 제한은 1232 bytes
+    if (serializedSize > 1232) {
+      console.warn(`Transaction size (${serializedSize} bytes) exceeds limit of 1232 bytes`);
+    }
 
     return {
       success: true,
-      serializedTransaction: Buffer.from(transaction.serialize()).toString('base64')
+      serializedTransaction: Buffer.from(transaction.serialize()).toString('base64'),
     };
 
   } catch (error: unknown) {
