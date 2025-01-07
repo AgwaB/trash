@@ -381,10 +381,13 @@ export async function createRecycleTokenTransaction(
     let jupiterResults = [];
     let allLookupTableAddresses = new Set<string>();
 
-    // const modifyComputeUnits = ComputeBudgetProgram.setComputeUnitLimit({ 
-    //   units: 1_400_000
-    // });
-    // instructions.push(modifyComputeUnits);
+    const modifyComputeUnits = ComputeBudgetProgram.setComputeUnitLimit({ 
+      units: 1_400_000  
+    });
+    const priorityFee = ComputeBudgetProgram.setComputeUnitPrice({
+      microLamports: 500000
+    });
+    instructions.push(modifyComputeUnits, priorityFee);
 
     for (let i = 0; i < recycleList.length; i++) {
       const { mint, amount } = recycleList[i];
