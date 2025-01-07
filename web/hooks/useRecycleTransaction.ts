@@ -78,7 +78,7 @@ export function useRecycleTransaction() {
       const signedTx = await signTransaction(tx)
       
       const txId = await connection.sendTransaction(signedTx, {
-        skipPreflight: true,
+        skipPreflight: false,
         maxRetries: 10,
         preflightCommitment: 'processed',
       })
