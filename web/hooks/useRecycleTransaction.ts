@@ -61,6 +61,8 @@ export function useRecycleTransaction() {
               throw new Error("Failed to get price quote. Please try again later.");
             case RecycleErrorCode.INVALID_SWAP:
               throw new Error("Failed to create swap transaction. Please try again later.");
+            case RecycleErrorCode.TOKEN_NOT_TRADABLE:
+              throw new Error("This token is not tradable");
             default:
               throw new Error(result.error || "Unknown error occurred");
           }

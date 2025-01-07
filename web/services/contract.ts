@@ -316,6 +316,12 @@ async function getJupiterInstructions(
             'This token cannot be recycled using simple AMMs'
           );
         }
+        if (swapResult.errorCode === 'TOKEN_NOT_TRADABLE') {
+          throw new RecycleError(
+            RecycleErrorCode.TOKEN_NOT_TRADABLE,
+            'This token is not tradable'
+          );
+        }
         throw new RecycleError(
           RecycleErrorCode.INVALID_SWAP,
           `Failed to get swap instructions: ${swapResult.error}`
