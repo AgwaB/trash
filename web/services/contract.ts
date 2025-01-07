@@ -328,6 +328,7 @@ async function getJupiterInstructions(
       //   );
       // }
 
+      console.log(`swapResult: ${JSON.stringify(swapResult)}`)
       if (!swapResult.setupInstructions 
         || !swapResult.computeBudgetInstructions 
         || !swapResult.swapInstruction 
@@ -385,17 +386,21 @@ export async function createRecycleTokenTransaction(
       program
     );
 
-    let instructions = accounts.initIx ? [accounts.initIx] : [];
-    let jupiterResults = [];
-    let allLookupTableAddresses = new Set<string>();
-
+    let instructions = [];
     // const modifyComputeUnits = ComputeBudgetProgram.setComputeUnitLimit({ 
     //   units: 1_400_000  
     // });
     // const priorityFee = ComputeBudgetProgram.setComputeUnitPrice({
     //   microLamports: 2500000
     // });
-    // instructions.push(modifyComputeUnits, priorityFee);
+    // instructions.push(modifyComputeUnits);
+
+    if (accounts.initIx) {
+      instructions.push(accounts.initIx);
+    }
+
+    let jupiterResults = [];
+    let allLookupTableAddresses = new Set<string>();
 
     for (let i = 0; i < recycleList.length; i++) {
       const { mint, amount } = recycleList[i];
@@ -435,19 +440,6 @@ export async function createRecycleTokenTransaction(
 
       const { swapInstruction, setupInstructions, computeBudgetInstructions, cleanupInstruction } = jupiterResult[0].swapResult;
 
-      setupInstructions.forEach((setupInstruction: any) => {
-        const setupIx = new TransactionInstruction({
-          programId: new PublicKey(setupInstruction.programId),
-          keys: setupInstruction.accounts.map((key: any) => ({
-            pubkey: new PublicKey(key.pubkey),
-            isSigner: key.isSigner,
-            isWritable: key.isWritable,
-          })),
-          data: Buffer.from(setupInstruction.data, "base64"),
-        });
-        instructions.push(setupIx);
-      })
-
       computeBudgetInstructions.forEach((computeBudgetInstruction: any) => {
         const computeBudgetIx = new TransactionInstruction({
           programId: new PublicKey(computeBudgetInstruction.programId),
@@ -461,17 +453,18 @@ export async function createRecycleTokenTransaction(
         instructions.push(computeBudgetIx);
       })
 
-      const cleanupIx = new TransactionInstruction({
-        programId: new PublicKey(cleanupInstruction.programId),
-        keys: cleanupInstruction.accounts.map((key: any) => ({
-          pubkey: new PublicKey(key.pubkey),
-          isSigner: key.isSigner,
-          isWritable: key.isWritable,
-        })),
-        data: Buffer.from(cleanupInstruction.data, "base64"),
-      });
-
-      instructions.push(cleanupIx);
+      setupInstructions.forEach((setupInstruction: any) => {
+        const setupIx = new TransactionInstruction({
+          programId: new PublicKey(setupInstruction.programId),
+          keys: setupInstruction.accounts.map((key: any) => ({
+            pubkey: new PublicKey(key.pubkey),
+            isSigner: key.isSigner,
+            isWritable: key.isWritable,
+          })),
+          data: Buffer.from(setupInstruction.data, "base64"),
+        });
+        instructions.push(setupIx);
+      })
 
       const swapIx = new TransactionInstruction({
         programId: new PublicKey(swapInstruction.programId),
@@ -484,6 +477,18 @@ export async function createRecycleTokenTransaction(
       });
 
       instructions.push(swapIx);
+
+      const cleanupIx = new TransactionInstruction({
+        programId: new PublicKey(cleanupInstruction.programId),
+        keys: cleanupInstruction.accounts.map((key: any) => ({
+          pubkey: new PublicKey(key.pubkey),
+          isSigner: key.isSigner,
+          isWritable: key.isWritable,
+        })),
+        data: Buffer.from(cleanupInstruction.data, "base64"),
+      });
+
+      instructions.push(cleanupIx);
 
       const executeProposalIx = await program.methods
         .executeRecycleProposal(timestamp)

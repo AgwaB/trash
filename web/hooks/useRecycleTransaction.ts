@@ -80,7 +80,7 @@ export function useRecycleTransaction() {
       const txId = await connection.sendTransaction(signedTx, {
         skipPreflight: true,
         maxRetries: 10,
-        preflightCommitment: 'confirmed',
+        preflightCommitment: 'processed',
       })
 
       await connection.confirmTransaction({
