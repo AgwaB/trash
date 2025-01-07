@@ -272,7 +272,7 @@ async function getJupiterInstructions(
             // swapType: "aggregator",
             // asLegacyTransaction: "false",
             // maxAccounts: "64",
-            // slippageBps: "100",
+            slippageBps: "1000",
             asLegacyTransaction: "true",  // 더 간단한 legacy transaction format 사용
             maxAccounts: "64",
           })
@@ -303,6 +303,7 @@ async function getJupiterInstructions(
             // dynamicSlippage: { maxBps: 1000 }
             // computeUnitPriceMicroLamports: "auto",
             asLegacyTransaction: true,
+            slippageBps: "1000",
             // dynamicComputeUnitLimit: true,
           })
         })
