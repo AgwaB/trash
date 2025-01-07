@@ -77,6 +77,8 @@ export default function MobileMainWindow() {
         type: "success"
       })
 
+      setIsRecycling(false) // 조금 더 빠르게 렌더링 되도록
+
       setLocalTokens(current => 
         current?.filter(t => !selectedTokens.find(st => st.id === t.id)) || []
       )

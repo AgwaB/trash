@@ -22,11 +22,6 @@ import { Token } from '@/types/token'
 import { useRecycleTransaction } from '@/hooks/useRecycleTransaction'
 import TokenStatusBar from '../shared/TokenStatusBar'
 
-const connection = new Connection(RPC_ENDPOINT, {
-  commitment: 'processed',
-  confirmTransactionInitialTimeout: 60000,
-})
-
 export default function MainWindow() {
   const { connected, publicKey } = useWallet()
   const { points, refreshPoints } = usePoints()
@@ -69,6 +64,8 @@ export default function MainWindow() {
         message: "Recycle successful!",
         type: "success"
       })
+
+      setIsRecycling(false) // 조금 더 빠르게 렌더링 되도록
 
       setLocalTokens(current => 
         current?.filter(t => !tokens.find(st => st.id === t.id)) || []
