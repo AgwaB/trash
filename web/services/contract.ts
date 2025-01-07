@@ -260,21 +260,40 @@ async function getJupiterInstructions(
 
   const jupiterResults = await Promise.all(recycleList.map(async ({ mint, amount }) => {
     try {
-      const quoteResponse = await (
+      let quoteResponse = await (
         await fetch(
           `https://quote-api.jup.ag/v6/quote?` + new URLSearchParams({
             inputMint: mint,
             outputMint: NATIVE_MINT,
             amount: amount,
             slippageBps: "1000",
-            // onlyDirectRoutes: "false",
+            onlyDirectRoutes: "true",
             swapMode: "ExactIn",
             swapType: "aggregator",
-            // asLegacyTransaction: "false",
-            // maxAccounts: "64",
+            asLegacyTransaction: "false",
+            maxAccounts: "64",
           })
         )
       ).json();
+
+      if (quoteResponse.error) {
+        console.log(`Direct route failed for ${mint}, trying all routes...`);
+        quoteResponse = await (
+          await fetch(
+            `https://quote-api.jup.ag/v6/quote?` + new URLSearchParams({
+              inputMint: mint,
+              outputMint: NATIVE_MINT,
+              amount: amount,
+              slippageBps: "1000",
+              onlyDirectRoutes: "false",
+              swapMode: "ExactIn",
+              swapType: "aggregator",
+              asLegacyTransaction: "false",
+              maxAccounts: "64",
+            })
+          )
+        ).json();
+      }
 
       if (quoteResponse.error) {
         throw new RecycleError(
@@ -294,9 +313,6 @@ async function getJupiterInstructions(
             userPublicKey: userAddress,
             wrapAndUnwrapSol: true,
             dynamicComputeUnitLimit: true,
-            // computeUnitPriceMicroLamports: 50000000,
-            // allowOptimizedWrappedSolTokenAccount: true,
-            asLegacyTransaction: false,
             prioritizationFeeLamports: {
               autoMultiplier: 20,
             },
