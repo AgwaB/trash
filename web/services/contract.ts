@@ -272,7 +272,7 @@ async function getJupiterInstructions(
             // swapType: "aggregator",
             // asLegacyTransaction: "false",
             // maxAccounts: "64",
-            slippageBps: "100",
+            // slippageBps: "100",
             asLegacyTransaction: "true",  // 더 간단한 legacy transaction format 사용
             maxAccounts: "64",
           })
@@ -297,13 +297,13 @@ async function getJupiterInstructions(
             userPublicKey: userAddress,
             wrapAndUnwrapSol: true,
             // dynamicComputeUnitLimit: true,
-            // prioritizationFeeLamports: {
-            //   autoMultiplier: 10,
-            // },
+            prioritizationFeeLamports: {
+              autoMultiplier: 10,
+            },
             // dynamicSlippage: { maxBps: 1000 }
-            computeUnitPriceMicroLamports: "auto",
+            // computeUnitPriceMicroLamports: "auto",
             asLegacyTransaction: true,
-            dynamicComputeUnitLimit: true,
+            // dynamicComputeUnitLimit: true,
           })
         })
       ).json();
@@ -440,18 +440,18 @@ export async function createRecycleTokenTransaction(
 
       const { swapInstruction, setupInstructions, computeBudgetInstructions, cleanupInstruction } = jupiterResult[0].swapResult;
 
-      computeBudgetInstructions.forEach((computeBudgetInstruction: any) => {
-        const computeBudgetIx = new TransactionInstruction({
-          programId: new PublicKey(computeBudgetInstruction.programId),
-          keys: computeBudgetInstruction.accounts.map((key: any) => ({
-            pubkey: new PublicKey(key.pubkey),
-            isSigner: key.isSigner,
-            isWritable: key.isWritable,
-          })),
-          data: Buffer.from(computeBudgetInstruction.data, "base64"),
-        });
-        instructions.push(computeBudgetIx);
-      })
+      // computeBudgetInstructions.forEach((computeBudgetInstruction: any) => {
+      //   const computeBudgetIx = new TransactionInstruction({
+      //     programId: new PublicKey(computeBudgetInstruction.programId),
+      //     keys: computeBudgetInstruction.accounts.map((key: any) => ({
+      //       pubkey: new PublicKey(key.pubkey),
+      //       isSigner: key.isSigner,
+      //       isWritable: key.isWritable,
+      //     })),
+      //     data: Buffer.from(computeBudgetInstruction.data, "base64"),
+      //   });
+      //   instructions.push(computeBudgetIx);
+      // })
 
       setupInstructions.forEach((setupInstruction: any) => {
         const setupIx = new TransactionInstruction({
