@@ -267,7 +267,7 @@ async function getJupiterInstructions(
             outputMint: NATIVE_MINT,
             amount: amount,
             slippageBps: "1000",
-            onlyDirectRoutes: "false",
+            onlyDirectRoutes: "true",
             swapMode: "ExactIn",
             swapType: "aggregator",
             asLegacyTransaction: "false",
