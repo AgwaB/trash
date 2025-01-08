@@ -94,7 +94,6 @@ export async function fetchUserStats(userAddress: string) {
 export async function fetchVaultInfo() {
   try {
     const vaultPDA = await getVaultPDA()
-    
     const program = await getProgram()
     const vault = await program.account.vault.fetch(vaultPDA)
     
@@ -335,7 +334,6 @@ async function getJupiterInstructions(
       //   );
       // }
 
-      console.log(`swapResult: ${JSON.stringify(swapResult)}`)
       if (!swapResult.setupInstructions 
         || !swapResult.computeBudgetInstructions 
         || !swapResult.swapInstruction 

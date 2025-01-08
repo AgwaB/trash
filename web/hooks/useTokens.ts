@@ -51,7 +51,7 @@ export function useTokens(address: string | undefined) {
     return basicTokens.map(token => {
       const label = labels[token.id] || {
         description: getTokenDescription(token.id),
-        multiplier: 1
+        multiplier: 1000
       }
 
       return {
