@@ -21,13 +21,12 @@ export default function TokenItem({ token, index, isMobile, onRecycle }: TokenIt
   const handleMouseEnter = () => {
     if (itemRef.current) {
       const rect = itemRef.current.getBoundingClientRect()
-      // 아이템의 중앙 좌표 계산
-      const centerX = rect.left + rect.width / 2
-      const centerY = rect.top + rect.height / 2
+      const rightX = rect.right - 20
+      const topY = rect.top
       
       setHoverPosition({
-        x: centerX,
-        y: centerY
+        x: rightX,
+        y: topY
       })
     }
     setShowHoverCard(true)
