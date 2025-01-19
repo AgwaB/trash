@@ -6,6 +6,7 @@ export async function withdrawSolFromVault(
   receiver: PublicKey,
   amount: number
 ) {
+  const lamports = Math.round(amount * LAMPORTS_PER_SOL);
   const { program, provider } = getProgramInstance();
   
   try {
@@ -20,9 +21,7 @@ export async function withdrawSolFromVault(
     );
 
     const tx = await program.methods
-      .withdrawSolFromVault(
-        new anchor.BN(amount).mul(new anchor.BN(LAMPORTS_PER_SOL))
-      )
+      .withdrawSolFromVault(new anchor.BN(lamports))
       .accounts({
         authority: provider.wallet.publicKey,
         receiver,
