@@ -1,15 +1,10 @@
 import { useWallet } from '@solana/wallet-adapter-react'
-import { Connection, VersionedTransaction } from '@solana/web3.js'
+import { VersionedTransaction } from '@solana/web3.js'
 import { createRecycleTokenTransaction } from '@/services/contract'
-import { RPC_ENDPOINT } from '@/config'
+import { getLatestBlockhash, sendAndConfirmTransaction } from '@/services/transaction'
 import { Decimal } from 'decimal.js'
 import { Token } from '@/types/token'
 import { RecycleError, RecycleErrorCode } from '@/types/error'
-
-const connection = new Connection(RPC_ENDPOINT, {
-  commitment: 'confirmed',
-  confirmTransactionInitialTimeout: 120000,
-})
 
 interface RecycleResult {
   success: boolean
@@ -74,27 +69,21 @@ export function useRecycleTransaction() {
         Buffer.from(result.serializedTransaction, 'base64')
       )
 
-      const { blockhash, lastValidBlockHeight } = await connection.getLatestBlockhash()
+      const { blockhash, lastValidBlockHeight } = await getLatestBlockhash()
       tx.message.recentBlockhash = blockhash
 
       const signedTx = await signTransaction(tx)
       
-      const txId = await connection.sendTransaction(signedTx, {
-        skipPreflight: false,
-        maxRetries: 10,
-        preflightCommitment: 'confirmed',
-      })
-
-      await connection.confirmTransaction({
-        signature: txId,
-        blockhash: blockhash,
+      // Serialize the signed transaction to send to server
+      const serializedSignedTx = Buffer.from(signedTx.serialize()).toString('base64')
+      
+      const sendResult = await sendAndConfirmTransaction(
+        serializedSignedTx,
+        blockhash,
         lastValidBlockHeight
-      })
+      )
 
-      return {
-        success: true,
-        txId
-      }
+      return sendResult
 
     } catch (error: any) {
       console.error("Recycle transaction failed:", error);

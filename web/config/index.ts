@@ -5,8 +5,7 @@ export const PROGRAM_ID = new PublicKey(process.env.NEXT_PUBLIC_PROGRAM_ID!)
 export const TOKEN_PROGRAM_ID = new PublicKey("TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA")
 export const TOKEN_2022_PROGRAM_ID = new PublicKey("TokenzQdBNbLqP5VEhdkAS6EPFLC1PHnBqCXEpPxuEb")
 
-// RPC Endpoint
-export const RPC_ENDPOINT = process.env.NEXT_PUBLIC_RPC_ENDPOINT!
+// RPC Endpoint is now in config/server.ts for server-side use only
 
 // Seeds
 export const SEEDS = {

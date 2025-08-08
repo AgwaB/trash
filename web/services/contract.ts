@@ -6,7 +6,8 @@ import { Trash } from './idl/trash'
 import IDL from './idl/trash.json'
 import { TOKEN_PROGRAM_ID } from '@solana/spl-token'
 import { Wallet } from '@coral-xyz/anchor'
-import { PROGRAM_ID, RPC_ENDPOINT, SEEDS } from '@/config'
+import { PROGRAM_ID, SEEDS } from '@/config'
+import { RPC_ENDPOINT } from '@/config/server'
 import { RecycleErrorCode, RecycleError } from '@/types/error'
 
 const connection = new Connection(RPC_ENDPOINT,

@@ -6,7 +6,8 @@ import { Token, TokenType } from "@/types/token"
 import { unstable_cache } from 'next/cache'
 import { getCachedPrices, updateCachedPrice, getExpiredTokenIds, getAllCachedPrices } from './cache'
 import { Decimal } from 'decimal.js'
-import { TOKEN_PROGRAM_ID, TOKEN_2022_PROGRAM_ID, RPC_ENDPOINT, WSOL_MINT } from '@/config'
+import { TOKEN_PROGRAM_ID, TOKEN_2022_PROGRAM_ID, WSOL_MINT } from '@/config'
+import { RPC_ENDPOINT } from '@/config/server'
 import { sleep } from "@/utils/sleep"
 import { TokenStandard } from '@metaplex-foundation/mpl-token-metadata'
 
@@ -16,10 +17,14 @@ interface TokenMetadata {
   image?: string
 }
 
-interface TokenPrice {
-  id: string
-  type: string
-  price: string
+interface TokenPriceV3 {
+  usdPrice: number
+  lastSwappedPrice?: {
+    lastJupiterSellAt: number
+    lastJupiterSellPrice: number
+    lastJupiterBuyAt: number
+    lastJupiterBuyPrice: number
+  }
 }
 
 interface JupiterPriceResponse {
@@ -186,9 +191,26 @@ export async function getTokenPrices(tokenIds: string[]): Promise<Record<string,
       )
     }
 
+    // First, get WSOL price in USD
+    const wsolResponse = await fetch(
+      `https://lite-api.jup.ag/price/v3?ids=${WSOL_MINT}`
+    )
+    
+    if (!wsolResponse.ok) {
+      throw new Error(`Failed to fetch WSOL price: ${wsolResponse.statusText}`)
+    }
+    
+    const wsolData = await wsolResponse.json()
+    const wsolUsdPrice = wsolData[WSOL_MINT]?.usdPrice
+    
+    if (!wsolUsdPrice) {
+      throw new Error('Failed to get WSOL USD price')
+    }
+
     const chunks = []
-    for (let i = 0; i < tokensToFetch.length; i += 100) {
-      chunks.push(tokensToFetch.slice(i, i + 100))
+    // v3 API supports up to 50 tokens per request
+    for (let i = 0; i < tokensToFetch.length; i += 50) {
+      chunks.push(tokensToFetch.slice(i, i + 50))
     }
 
     const newPrices: Record<string, string> = {}
@@ -196,18 +218,22 @@ export async function getTokenPrices(tokenIds: string[]): Promise<Record<string,
     for (const chunk of chunks) {
       const ids = chunk.join(',')
       const response = await fetch(
-        `https://api.jup.ag/price/v2?ids=${ids}&vsToken=${WSOL_MINT}`
+        `https://lite-api.jup.ag/price/v3?ids=${ids}`
       )
       
       if (!response.ok) {
         throw new Error(`Failed to fetch prices: ${response.statusText}`)
       }
 
-      const data: JupiterPriceResponse = await response.json()
+      const data = await response.json()
       
-      for (const [tokenId, priceInfo] of Object.entries(data.data)) {
-        if (priceInfo && priceInfo.price) {
-          newPrices[tokenId] = priceInfo.price
+      // v3 API returns token prices in USD
+      for (const [tokenId, priceInfo] of Object.entries(data || {})) {
+        if (priceInfo && typeof priceInfo === 'object' && 'usdPrice' in priceInfo) {
+          // Convert USD price to WSOL price for backward compatibility
+          const usdPrice = (priceInfo as any).usdPrice
+          const wsolPrice = usdPrice / wsolUsdPrice
+          newPrices[tokenId] = String(wsolPrice)
         } else {
           newPrices[tokenId] = '0'
         }
